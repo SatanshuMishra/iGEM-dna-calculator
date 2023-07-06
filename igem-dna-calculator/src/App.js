@@ -10,12 +10,21 @@ import { RxCopy } from "react-icons/rx";
 
 function App() {
   const [valueA, setValueA] = useState("");
+  const [inputValueA, setInputValueA] = useState("");
   const [valueB, setValueB] = useState("");
   const selectedValueA = (value) => {
     setValueA(value);
   };
   const selectedValueB = (value) => {
     setValueB(value);
+  };
+
+  document.addEventListener("input", (e) => {
+    setInputValueA(document.querySelector("#sequence-input").value.trim());
+  });
+
+  const inputValueSet = (value) => {
+    setInputValueA(value);
   };
 
   const notify = () =>
@@ -55,6 +64,15 @@ function App() {
         </div>
         <div className="flex justify-between items-center">
           <h1 className="pr-6 flex-none font-semibold">ENTER FIELD TITLE</h1>
+          <input
+            id="sequence-input"
+            type="text"
+            className="m-2 h-10 w-full text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg font-semibold cursor-text"
+            placeholder="Enter DNA Sequence Here"
+          />
+        </div>
+        <div className="flex justify-between items-center">
+          <h1 className="pr-6 flex-none font-semibold">ENTER FIELD TITLE</h1>
           <SelectorMenu
             dataset={SelectorBData}
             selectedValue={selectedValueB}
@@ -62,13 +80,17 @@ function App() {
         </div>
         <div className="m-2 mt-4 h-10 text-black bg-gray-100 pl-4 text-base rounded-md text-left shadow-lg flex justify-end">
           <div className="grow p-2">
-            {valueA && valueB ? valueA + " " + valueB : ""}
+            {valueA && valueB && inputValueA
+              ? valueA + " " + inputValueA + " " + valueB
+              : ""}
           </div>
           <div
             className="pr-4 pl-4 pt-3 pb-2 text-white  bg-teal-500 rounded-tr-lg rounded-br-lg text-center cursor-pointer"
             onClick={() => {
               navigator.clipboard.writeText(
-                valueA && valueB ? valueA + " " + valueB : ""
+                valueA && valueB
+                  ? valueA + " " + inputValueA + " " + valueB
+                  : ""
               );
               notify();
             }}
