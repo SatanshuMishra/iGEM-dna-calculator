@@ -3,6 +3,9 @@ import SelectorMenu from "./components/SelectorMenu";
 import SelectorAData from "./data/data-set-A.json";
 import SelectorBData from "./data/data-set-B.json";
 
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import { RxCopy } from "react-icons/rx";
 
 function App() {
@@ -15,8 +18,32 @@ function App() {
     setValueB(value);
   };
 
+  const notify = () =>
+    toast.success("Copied to Clipboard.", {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
+
   return (
     <div className="m-10">
+      <ToastContainer
+        position="top-center"
+        autoClose={2000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover={false}
+        theme="light"
+      />
       <div className="bg-white w-full p-6 rounded-lg">
         <h1 className="text-xl font-black pb-4">ENTER TITLE HERE</h1>
         <div className="flex justify-between items-center">
@@ -43,6 +70,7 @@ function App() {
               navigator.clipboard.writeText(
                 valueA && valueB ? valueA + " " + valueB : ""
               );
+              notify();
             }}
           >
             <RxCopy />
