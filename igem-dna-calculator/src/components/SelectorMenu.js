@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { FaCaretDown } from "react-icons/fa6";
 
 function Selector(props) {
   const dataset = props.dataset;
@@ -28,10 +29,11 @@ function Selector(props) {
   return (
     <div className="flex-1">
       <div
-        className="m-2 h-10 text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg font-semibold cursor-pointer
+        className="m-2 h-10 flex flex-row justify-end items-center text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg font-semibold cursor-pointer
       "
         onClick={toggleMenu}
       >
+        <FaCaretDown />
         {selectedOption}
       </div>
       {isActive && (
