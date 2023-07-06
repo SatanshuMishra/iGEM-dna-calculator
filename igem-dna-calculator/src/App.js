@@ -1,30 +1,40 @@
 import { useState } from "react";
-import SelectorMenu from "./components/SelectorMenu";
-import SelectorAData from "./data/data-set-A.json";
-import SelectorBData from "./data/data-set-B.json";
-
 import { ToastContainer, toast } from "react-toastify";
+import { RxCopy } from "react-icons/rx";
 import "react-toastify/dist/ReactToastify.css";
 
-import { RxCopy } from "react-icons/rx";
+// CUSTOM IMPORTS
+import SelectorMenu from "./components/SelectorMenu";
+import PresetsDate from "./data/presets-data-set.json";
+import SelectorAData from "./data/data-set-A.json";
+import SelectorBData from "./data/data-set-B.json";
+import PresetSelector from "./components/PresetSelector";
 
 function App() {
-  const [valueA, setValueA] = useState("");
-  const [inputValueA, setInputValueA] = useState("");
-  const [valueB, setValueB] = useState("");
-  const selectedValueA = (value) => {
-    setValueA(value);
-  };
-  const selectedValueB = (value) => {
-    setValueB(value);
-  };
+  // CONFIG VARIABLES
+  let placeHolderText = "SELECT AN OPTION 👀";
 
-  document.addEventListener("input", (e) => {
-    setInputValueA(document.querySelector("#sequence-input").value.trim());
+  // STATE CONDITIONS
+  const [selectorMenuAValue, setSelectorMenuAValue] = useState(
+    SelectorAData[0].value
+  );
+  const [selectorMenuBValue, setSelectorMenuBValue] = useState(
+    SelectorBData[0].value
+  );
+  const [inputValue, setInputValue] = useState("");
+
+  document.addEventListener("input", () => {
+    setInputValue(document.querySelector("#sequence-input").value.trim());
   });
 
-  const inputValueSet = (value) => {
-    setInputValueA(value);
+  const updateTextAreaViewport = () => {
+    const textArea = document.querySelector("#sequence-input");
+    textArea.addEventListener("input", (e) => {
+      textArea.style.height = "auto";
+      let scrollHeight = e.target.scrollHeight;
+      textArea.style.height =
+        Math.floor(scrollHeight / 24) > 20 ? `480px` : `${scrollHeight}px`;
+    });
   };
 
   const notify = () =>
@@ -39,8 +49,15 @@ function App() {
       theme: "light",
     });
 
+  const selectPreset = (preset) => {
+    console.log("Preset: " + SelectorAData[preset[0]].value);
+    setSelectorMenuAValue(SelectorAData[preset[0]].value);
+    setSelectorMenuBValue(SelectorBData[preset[1]].value);
+  };
+
   return (
     <div className="m-10">
+      {/* TOAST CONTAINER FOR SUCCESSFULLY COPIED TO CLIPBOARD */}
       <ToastContainer
         position="top-center"
         autoClose={2000}
@@ -57,39 +74,54 @@ function App() {
         <h1 className="text-xl font-black pb-4">ENTER TITLE HERE</h1>
         <div className="flex justify-between items-center">
           <h1 className="pr-6 flex-none font-semibold">ENTER FIELD TITLE</h1>
-          <SelectorMenu
-            dataset={SelectorAData}
-            selectedValue={selectedValueA}
-          />
+          <PresetSelector dataset={PresetsDate} selectedPreset={selectPreset} />
         </div>
         <div className="flex justify-between items-center">
           <h1 className="pr-6 flex-none font-semibold">ENTER FIELD TITLE</h1>
-          <input
-            id="sequence-input"
-            type="text"
-            className="m-2 h-10 w-full text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg font-semibold cursor-text"
-            placeholder="Enter DNA Sequence Here"
+          <SelectorMenu
+            dataset={SelectorAData}
+            value={selectorMenuAValue}
+            selectedOption={setSelectorMenuAValue}
           />
         </div>
         <div className="flex justify-between items-center">
           <h1 className="pr-6 flex-none font-semibold">ENTER FIELD TITLE</h1>
           <SelectorMenu
             dataset={SelectorBData}
-            selectedValue={selectedValueB}
+            value={selectorMenuBValue}
+            selectedOption={setSelectorMenuBValue}
           />
         </div>
-        <div className="m-2 mt-4 h-10 text-black bg-gray-100 pl-4 text-base rounded-md text-left shadow-lg flex justify-end">
+        <div className=" my-4 flex flex-col justify-between items-start">
+          <h1 className="pr-6 flex-none font-semibold">ENTER FIELD TITLE</h1>
+          <textarea
+            id="sequence-input"
+            type="text"
+            className="my-4 h-auto resize-none w-full text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg  cursor-text leading-6"
+            rows={1}
+            placeholder="PLACEHOLDER TEXT"
+            onChange={updateTextAreaViewport}
+          />
+        </div>
+        <div className="my-2 mt-4 h-auto text-black bg-gray-100 pl-4 text-base rounded-md text-left shadow-lg flex justify-end">
           <div className="grow p-2">
-            {valueA && valueB && inputValueA
-              ? valueA + " " + inputValueA + " " + valueB
-              : ""}
+            {selectorMenuAValue &&
+            selectorMenuBValue &&
+            selectorMenuBValue !== placeHolderText &&
+            inputValue
+              ? selectorMenuAValue + " " + inputValue + " " + selectorMenuBValue
+              : "PLEASE SELECT OR ENTER VALID DATA ABOVE."}
           </div>
           <div
             className="pr-4 pl-4 pt-3 pb-2 text-white  bg-teal-500 rounded-tr-lg rounded-br-lg text-center cursor-pointer"
             onClick={() => {
               navigator.clipboard.writeText(
-                valueA && valueB
-                  ? valueA + " " + inputValueA + " " + valueB
+                selectorMenuAValue && selectorMenuBValue && inputValue
+                  ? selectorMenuAValue +
+                      " " +
+                      inputValue +
+                      " " +
+                      selectorMenuBValue
                   : ""
               );
               notify();

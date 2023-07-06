@@ -1,0 +1,22 @@
+[
+  {
+    "id": 0,
+    "value": "SELECT A PRESET",
+    "preset": [0, 0]
+  },
+  {
+    "id": 1,
+    "value": "PRESET B | C & W",
+    "preset": [2, 3]
+  },
+  {
+    "id": 2,
+    "value": "PRESET C | A & X",
+    "preset": [1, 4]
+  },
+  {
+    "id": 3,
+    "value": "PRESET D | A & W",
+    "preset": [0, 3]
+  }
+]

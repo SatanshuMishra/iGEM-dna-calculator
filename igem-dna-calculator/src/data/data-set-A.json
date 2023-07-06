@@ -1,18 +1,18 @@
 [
   {
+    "id": 0,
+    "value": "OPTION A"
+  },
+  {
     "id": 1,
-    "value": "Option A"
+    "value": "OPTION B"
   },
   {
     "id": 2,
-    "value": "Option B"
+    "value": "OPTION C"
   },
   {
     "id": 3,
-    "value": "Option C"
-  },
-  {
-    "id": 4,
-    "value": "Option D"
+    "value": "OPTION D"
   }
 ]
