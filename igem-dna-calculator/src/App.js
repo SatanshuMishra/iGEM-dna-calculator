@@ -87,7 +87,7 @@ function App() {
 
   // COPY TO CLIPBOARD
   const copyToClipboard = () => {
-    getFormattedData();
+    navigator.clipboard.writeText(getFormattedData());
     notify();
   };
 
@@ -174,10 +174,8 @@ function App() {
           <div
             className="pr-4 pl-4 pt-3 pb-2 bg-teal-600 rounded-tr-lg rounded-br-lg text-center cursor-pointer text-white"
             onClick={() => {
-              navigator.clipboard.writeText(
-                (validateData() && copyToClipboard()) ||
-                  console.log("DEBUG: PLEASE SELECT OR ENTER VALID DATA")
-              );
+              (validateData() && copyToClipboard()) ||
+                console.log("DEBUG: PLEASE SELECT OR ENTER VALID DATA");
             }}
           >
             <RxCopy />
