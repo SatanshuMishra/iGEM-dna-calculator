@@ -10,7 +10,7 @@ import SelectorAData from "./data/data-set-A.json";
 import SelectorBData from "./data/data-set-B.json";
 import PresetSelector from "./components/PresetSelector";
 
-function App() {
+function GeneEditor() {
   // CONFIG VARIABLES
   // CONFIGURE THE FOLLOWING VARIABLES TO SETUP THE CALCULATOR LABELS & BEHAVIOR
   let placeHolderText = "SELECT AN OPTION 👀"; // USED TO CHECK IF VALID SECOND OPTION HAS BEEN SELECTED
@@ -32,14 +32,16 @@ function App() {
     SelectorBData[0].value
   );
   const [inputValue, setInputValue] = useState("");
+  const [invalidCharactersPresent, setInvalidCharactersPresent] =
+    useState(false);
 
-  document.addEventListener("input", () => {
-    setInputValue(document.querySelector("#sequence-input").value.trim());
-  });
+  const re = /[^ATGCWSMKRYBDHVN-]/i;
+  const reg = /[^ATGCWSMKRYBDHVN-]/gi;
 
   // FUNCTION VARIABLES //
   // SUCCESS TOAST SETTINGS FUNCTIONS
   // TODO: ADD CONDITION FOR EMPTY COPY TO CLIPBOARD
+
   const notify = () =>
     toast.success("Copied to Clipboard.", {
       position: "top-right",
@@ -53,14 +55,15 @@ function App() {
     });
 
   // UPDATE TEXT AREA VIEWPORT SIZE FUNCTION
-  const updateTextAreaViewport = () => {
+  const onChangeTextAreaHandler = () => {
+    console.log("ENTERED UPDATE TEXT");
     const textArea = document.querySelector("#sequence-input");
-    textArea.addEventListener("input", (e) => {
-      textArea.style.height = "auto";
-      let scrollHeight = e.target.scrollHeight;
-      textArea.style.height =
-        Math.floor(scrollHeight / 24) > 20 ? `480px` : `${scrollHeight}px`;
-    });
+    setInputValue(textArea.value);
+    setInvalidCharactersPresent(re.test(textArea.value));
+    textArea.style.height = "auto";
+    let scrollHeight = textArea.scrollHeight;
+    textArea.style.height =
+      Math.floor(scrollHeight / 24) > 20 ? `480px` : `${scrollHeight}px`;
   };
 
   // PRESET SELECTOR FUNCTION -> USED WITHIN "PRESETSELECT" COMPONENT
@@ -70,19 +73,48 @@ function App() {
     setSelectorMenuBValue(SelectorBData[preset[1]].value);
   };
 
+  // SELECTOR FUNCTIONS
+  const setSelectedA = (value) => {
+    setSelectedPreset("CUSTOM");
+    setSelectorMenuAValue(value);
+  };
+
+  const setSelectedB = (value) => {
+    setSelectedPreset("CUSTOM");
+    setSelectorMenuBValue(value);
+  };
+
   // CHECK IF VALID DATA HAS BEEN SELECTED & ENTERED
   const validateData = () => {
     return (
       selectorMenuAValue &&
       selectorMenuBValue &&
-      selectorMenuBValue !== placeHolderText &&
-      inputValue
+      selectorMenuBValue !== placeHolderText
     );
+  };
+
+  const getFormattedInput = () => {
+    if (inputValue != "") {
+      if (invalidCharactersPresent) {
+        return inputValue.replace(reg, (str) => {
+          return `<span style="background-color: #fa0a6a; color: #FFFFFF; padding: 1px 2px; margin: 0px 2px; border-radius:2px;">${str}</span>`;
+        });
+      } else return inputValue;
+    } else {
+      return `<span style="background-color: #fa0a6a; color: #FFFFFF; padding: 5px; margin: 10px; border-radius:4px;">PLACEHOLDER</span>`;
+    }
   };
 
   // RETURN FORMATTED DATA
   const getFormattedData = () => {
-    return selectorMenuAValue + " " + inputValue + " " + selectorMenuBValue;
+    let formattedString =
+      selectorMenuAValue + getFormattedInput() + selectorMenuBValue;
+    console.log(
+      "BEFORE: " + document.querySelector("#outputDisplay").innerHTML
+    );
+    document.querySelector("#outputDisplay").innerHTML = formattedString;
+    console.log("AFTER: " + document.querySelector("#outputDisplay").innerHTML);
+    // return selectorMenuAValue + getFormattedInput() + selectorMenuBValue;
   };
 
   // COPY TO CLIPBOARD
@@ -97,7 +129,19 @@ function App() {
     setSelectorMenuAValue(SelectorAData[0].value);
     setSelectorMenuBValue(SelectorBData[0].value);
     setInputValue("");
+    setInvalidCharactersPresent(false);
     document.querySelector("#sequence-input").value = "";
+    document.querySelector("#outputDisplay").innerHTML = "";
+  };
+
+  const getInvalidIndecies = () => {
+    // let match;
+    // let str = "";
+    // while ((match = reg.exec(inputValue)) != null) {
+    //   console.log(match);
+    //   str += match.index + ", ";
+    // }
+    // return str.substring(0, str.length - 2);
   };
 
   return (
@@ -141,7 +185,7 @@ function App() {
           <SelectorMenu
             dataset={SelectorAData}
             value={selectorMenuAValue}
-            selectedOption={setSelectorMenuAValue}
+            selectedOption={setSelectedA}
           />
         </div>
         {/* SELECTOR B */}
@@ -150,7 +194,7 @@ function App() {
           <SelectorMenu
             dataset={SelectorBData}
             value={selectorMenuBValue}
-            selectedOption={setSelectorMenuBValue}
+            selectedOption={setSelectedB}
           />
         </div>
         {/* INPUT FIELD */}
@@ -162,17 +206,37 @@ function App() {
             className="my-4 h-auto w-full resize-none pl-4 p-2 text-base rounded-md text-left cursor-text leading-6 shadow-lg text-black bg-gray-100"
             rows={1}
             placeholder={inputPlaceholderLabel}
-            onChange={updateTextAreaViewport}
+            onInput={onChangeTextAreaHandler}
           />
+          {/* {true && <Notification />} */}
+          {invalidCharactersPresent && (
+            <div className="w-full flex justify-between">
+              <p className="text-red-600">
+                Your input has invalid characters present at index
+                {" " + getInvalidIndecies()}
+              </p>
+              <button
+                className=" px-4 py-2 bg-emerald-600 rounded-lg text-white"
+                onClick={() => {
+                  const textArea = document.querySelector("#sequence-input");
+                  textArea.value = inputValue.replaceAll(reg, "");
+                  onChangeTextAreaHandler();
+                }}
+              >
+                Remove Invalid Characters
+              </button>
+            </div>
+          )}
+          {!invalidCharactersPresent && inputValue != "" && (
+            <p className="text-green-600">Your input is valid.</p>
+          )}
         </div>
-        <div className="flex justify-end my-2 mt-4 h-auto pl-2 text-base rounded-md text-left shadow-lg text-black bg-gray-100">
-          <div className="grow p-2">
-            {validateData()
-              ? getFormattedData()
-              : "PLEASE SELECT OR ENTER VALID DATA ABOVE."}
+        <div className="flex flex-row w-full justify-between rounded-md shadow-lg text-black bg-gray-100">
+          <div id="outputDisplay" className="p-2 break-all">
+            {validateData() && getFormattedData()}
           </div>
           <div
-            className="pr-4 pl-4 pt-3 pb-2 bg-teal-600 rounded-tr-lg rounded-br-lg text-center cursor-pointer text-white"
+            className=" flex flex-col justify-center pr-4 pl-4 pt-3 pb-2 bg-teal-600 rounded-tr-lg rounded-br-lg text-center cursor-pointer text-white"
             onClick={() => {
               (validateData() && copyToClipboard()) ||
                 console.log("DEBUG: PLEASE SELECT OR ENTER VALID DATA");
@@ -186,4 +250,4 @@ function App() {
   );
 }
 
-export default App;
+export default GeneEditor;
