@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FaCaretDown } from "react-icons/fa6";
 
-function Selector(props) {
+function SelectorMenu(props) {
   // DATASET FOR FROM WHICH SELECTION OPTIONS ARE GENERATED
   const dataset = props.dataset;
   // DETERMINES IF THE SELECTION MENU IS OPEN
@@ -29,9 +29,9 @@ function Selector(props) {
   };
 
   return (
-    <div className="flex-1 max-w-[80%]">
+    <div className="flex-1 w-full md:max-w-[80%]">
       <div
-        className="m-2 h-auto flex justify-between flex-row-reverse items-center text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg font-normal cursor-pointer
+        className="my-2 h-auto flex justify-between flex-row-reverse items-center text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg font-normal cursor-pointer
       "
         onClick={toggleMenu}
       >
@@ -62,4 +62,4 @@ function Selector(props) {
   );
 }
 
-export default Selector;
+export default SelectorMenu;

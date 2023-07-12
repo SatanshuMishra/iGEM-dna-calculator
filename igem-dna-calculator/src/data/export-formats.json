@@ -1,0 +1,14 @@
+[
+  {
+    "id": 0,
+    "value": "FASTA (.fasta)"
+  },
+  {
+    "id": 1,
+    "value": "GenBank (.gb)"
+  },
+  {
+    "id": 2,
+    "value": "SnapGene (.dna)"
+  }
+]

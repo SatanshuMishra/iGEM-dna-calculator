@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { RxCopy } from "react-icons/rx";
+import { FaCopy, FaCloudArrowUp } from "react-icons/fa6";
 import "react-toastify/dist/ReactToastify.css";
 
 // CUSTOM IMPORTS
@@ -9,10 +9,14 @@ import PresetsData from "./data/presets-data-set.json";
 import SelectorAData from "./data/data-set-A.json";
 import SelectorBData from "./data/data-set-B.json";
 import PresetSelector from "./components/PresetSelector";
+import ExportSelector from "./components/ExportSelector";
+import ExportData from "./data/export-formats.json";
 
 function GeneEditor() {
   // CONFIG VARIABLES
   // CONFIGURE THE FOLLOWING VARIABLES TO SETUP THE CALCULATOR LABELS & BEHAVIOR
+  let nameDescriptionLabel = "NAME | DESCRIPTION";
+  let nameDescriptionPlaceholder = "PLACEHOLDER";
   let placeHolderText = "SELECT AN OPTION 👀"; // USED TO CHECK IF VALID SECOND OPTION HAS BEEN SELECTED
   let titleLabel = "TITLE LABEL";
   let presetLabel = "PRESET FIELD LABEL";
@@ -24,6 +28,7 @@ function GeneEditor() {
   // ---------------------------------------------------------------- //
 
   // STATE CONDITIONS //
+  const [nameDescription, setNameDescription] = useState("");
   const [selectedPreset, setSelectedPreset] = useState(PresetsData[0].value);
   const [selectorMenuAValue, setSelectorMenuAValue] = useState(
     SelectorAData[0].value
@@ -31,6 +36,7 @@ function GeneEditor() {
   const [selectorMenuBValue, setSelectorMenuBValue] = useState(
     SelectorBData[0].value
   );
+  const [exportType, setExportType] = useState(ExportData[0].value);
   const [inputValue, setInputValue] = useState("");
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
@@ -54,9 +60,17 @@ function GeneEditor() {
       theme: "light",
     });
 
+  const onChangeNameDescriptionHandler = () => {
+    const nameDescriptionArea = document.querySelector("#name-description");
+    setNameDescription(nameDescriptionArea.value);
+    nameDescriptionArea.style.height = "auto";
+    let scrollHeight = nameDescriptionArea.scrollHeight;
+    nameDescriptionArea.style.height =
+      Math.floor(scrollHeight / 24) > 20 ? `480px` : `${scrollHeight}px`;
+  };
+
   // UPDATE TEXT AREA VIEWPORT SIZE FUNCTION
   const onChangeTextAreaHandler = () => {
-    console.log("ENTERED UPDATE TEXT");
     const textArea = document.querySelector("#sequence-input");
     setInputValue(textArea.value);
     setInvalidCharactersPresent(re.test(textArea.value));
@@ -109,17 +123,14 @@ function GeneEditor() {
   const getFormattedData = () => {
     let formattedString =
       selectorMenuAValue + getFormattedInput() + selectorMenuBValue;
-    console.log(
-      "BEFORE: " + document.querySelector("#outputDisplay").innerHTML
-    );
     document.querySelector("#outputDisplay").innerHTML = formattedString;
-    console.log("AFTER: " + document.querySelector("#outputDisplay").innerHTML);
-    // return selectorMenuAValue + getFormattedInput() + selectorMenuBValue;
   };
 
   // COPY TO CLIPBOARD
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(getFormattedData());
+    navigator.clipboard.writeText(
+      selectorMenuAValue + inputValue + selectorMenuBValue
+    );
     notify();
   };
 
@@ -130,6 +141,7 @@ function GeneEditor() {
     setSelectorMenuBValue(SelectorBData[0].value);
     setInputValue("");
     setInvalidCharactersPresent(false);
+    setNameDescription("");
     document.querySelector("#sequence-input").value = "";
     document.querySelector("#outputDisplay").innerHTML = "";
   };
@@ -161,6 +173,7 @@ function GeneEditor() {
       />
 
       <div className="w-full p-6 rounded-lg bg-white">
+        {/* HEADER */}
         <div className="flex flex-row justify-between items-center">
           <h1 className="text-xl pb-4 font-black">{titleLabel}</h1>
           <button
@@ -170,8 +183,22 @@ function GeneEditor() {
             RESET
           </button>
         </div>
+        {/* NAME/DESCRIPTION FIELD */}
+        <div className="flex flex-col justify-between items-start">
+          <h1 className="flex-none pr-6 font-semibold">
+            {nameDescriptionLabel}
+          </h1>
+          <textarea
+            id="name-description"
+            type="text"
+            className="my-4 h-auto w-full resize-none pl-4 p-2 text-base rounded-md text-left cursor-text leading-6 shadow-lg text-black bg-gray-100"
+            rows={1}
+            placeholder={nameDescriptionPlaceholder}
+            onInput={onChangeNameDescriptionHandler}
+          />
+        </div>
         {/* PRESET SELECTOR */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <h1 className="flex-none pr-6 font-semibold">{presetLabel}</h1>
           <PresetSelector
             dataset={PresetsData}
@@ -180,7 +207,7 @@ function GeneEditor() {
           />
         </div>
         {/* SELECTOR A */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <h1 className="flex-none pr-6 font-semibold">{selectorALabel}</h1>
           <SelectorMenu
             dataset={SelectorAData}
@@ -189,7 +216,7 @@ function GeneEditor() {
           />
         </div>
         {/* SELECTOR B */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <h1 className="flex-none pr-6 font-semibold">{selectorBLabel}</h1>
           <SelectorMenu
             dataset={SelectorBData}
@@ -231,20 +258,51 @@ function GeneEditor() {
             <p className="text-green-600">Your input is valid.</p>
           )}
         </div>
-        <div className="flex flex-row w-full justify-between rounded-md shadow-lg text-black bg-gray-100">
+        {/* OUTPUT BOX */}
+        <div className="flex flex-col md:flex-row w-full justify-between rounded-md shadow-lg text-black bg-green-50">
+          {/* OUTPUT DISPLAY AREA */}
           <div id="outputDisplay" className="p-2 break-all">
             {validateData() && getFormattedData()}
           </div>
-          <div
-            className=" flex flex-col justify-center pr-4 pl-4 pt-3 pb-2 bg-teal-600 rounded-tr-lg rounded-br-lg text-center cursor-pointer text-white"
-            onClick={() => {
-              (validateData() && copyToClipboard()) ||
-                console.log("DEBUG: PLEASE SELECT OR ENTER VALID DATA");
-            }}
-          >
-            <RxCopy />
+          {/* OPTIONS */}
+          <div className="flex flex-col rounded-tr-lg rounded-br-lg cursor-pointer text-black">
+            <div className="h-full flex justify-end p-1 md:p-0 text-white">
+              <div className="h-full flex flex-col justify-center px-3 py-3 rounded-tl-lg rounded-bl-lg md:rounded-tl-none md:rounded-bl-none bg-blue-500 text-base">
+                <FaCloudArrowUp />
+              </div>
+              <div
+                className="h-full flex flex-col justify-center px-3 py-3 rounded-tr-lg rounded-br-lg bg-teal-500 text-base"
+                onClick={() => {
+                  (validateData() && copyToClipboard()) ||
+                    console.log("DEBUG: PLEASE SELECT OR ENTER VALID DATA");
+                }}
+              >
+                <FaCopy />
+              </div>
+            </div>
           </div>
         </div>
+        {/* EXPORT SECTION */}
+        {validateData() && inputValue && !invalidCharactersPresent && (
+          <div className="flex flex-col justify-start items-start mt-8">
+            <h1 className="flex-none pr-6 font-black">EXPORT</h1>
+            <div className="flex flex-row justify-between w-full">
+              <div>
+                <ExportSelector
+                  dataset={ExportData}
+                  value={exportType}
+                  selectedOption={setExportType}
+                />
+              </div>
+              <button
+                className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
+                onClick={null}
+              >
+                EXPORT
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
