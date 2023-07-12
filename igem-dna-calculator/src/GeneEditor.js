@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { FaCopy, FaCloudArrowUp } from "react-icons/fa6";
 import "react-toastify/dist/ReactToastify.css";
@@ -41,8 +41,19 @@ function GeneEditor() {
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
 
+  const [geneBank, setGeneBank] = useState([]);
+
   const re = /[^ATGCWSMKRYBDHVN-]/i;
   const reg = /[^ATGCWSMKRYBDHVN-]/gi;
+
+  useEffect(() => {
+    const data = JSON.parse(window.localStorage.getItem("BANK"));
+    if (data.length !== 0) setGeneBank(data);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("BANK", JSON.stringify(geneBank));
+  }, [geneBank]);
 
   // FUNCTION VARIABLES //
   // SUCCESS TOAST SETTINGS FUNCTIONS
@@ -134,6 +145,17 @@ function GeneEditor() {
     notify();
   };
 
+  const bankGene = () => {
+    setGeneBank(() => [
+      ...geneBank,
+      {
+        nameDescription: { nameDescription },
+        geneSequence: { inputValue },
+      },
+    ]);
+    // window.localStorage.setItem("BANK", JSON.stringify(geneBank));
+  };
+
   //RESET FUNCTION
   const reset = () => {
     setSelectedPreset(PresetsData[0].value);
@@ -144,6 +166,10 @@ function GeneEditor() {
     setNameDescription("");
     document.querySelector("#sequence-input").value = "";
     document.querySelector("#outputDisplay").innerHTML = "";
+  };
+
+  const clearBank = () => {
+    setGeneBank([]);
   };
 
   const getInvalidIndecies = () => {
@@ -176,12 +202,20 @@ function GeneEditor() {
         {/* HEADER */}
         <div className="flex flex-row justify-between items-center">
           <h1 className="text-xl pb-4 font-black">{titleLabel}</h1>
-          <button
-            className="m-2 p-2 bg-pink-600 rounded-lg font-semibold text-white"
-            onClick={reset}
-          >
-            RESET
-          </button>
+          <div>
+            <button
+              className="m-2 p-2 bg-indigo-600 rounded-lg font-semibold text-white"
+              onClick={clearBank}
+            >
+              CLEAR BANK
+            </button>
+            <button
+              className="m-2 p-2 bg-pink-600 rounded-lg font-semibold text-white"
+              onClick={reset}
+            >
+              RESET
+            </button>
+          </div>
         </div>
         {/* NAME/DESCRIPTION FIELD */}
         <div className="flex flex-col justify-between items-start">
@@ -267,14 +301,27 @@ function GeneEditor() {
           {/* OPTIONS */}
           <div className="flex flex-col rounded-tr-lg rounded-br-lg cursor-pointer text-black">
             <div className="h-full flex justify-end p-1 md:p-0 text-white">
-              <div className="h-full flex flex-col justify-center px-3 py-3 rounded-tl-lg rounded-bl-lg md:rounded-tl-none md:rounded-bl-none bg-blue-500 text-base">
+              <div
+                className="h-full flex flex-col justify-center px-3 py-3 rounded-tl-lg rounded-bl-lg md:rounded-tl-none md:rounded-bl-none bg-blue-500 text-base"
+                onClick={() => {
+                  (nameDescription &&
+                    validateData() &&
+                    inputValue &&
+                    !invalidCharactersPresent &&
+                    bankGene()) ||
+                    console.log("DEBUG: MISSING VALUES. COULDN'T ADD TO BANK");
+                }}
+              >
                 <FaCloudArrowUp />
               </div>
               <div
                 className="h-full flex flex-col justify-center px-3 py-3 rounded-tr-lg rounded-br-lg bg-teal-500 text-base"
                 onClick={() => {
-                  (validateData() && copyToClipboard()) ||
-                    console.log("DEBUG: PLEASE SELECT OR ENTER VALID DATA");
+                  (validateData() &&
+                    inputValue &&
+                    !invalidCharactersPresent &&
+                    copyToClipboard()) ||
+                    console.log("DEBUG: COULDN'T COPY TO CLIPBOARD");
                 }}
               >
                 <FaCopy />
@@ -283,26 +330,29 @@ function GeneEditor() {
           </div>
         </div>
         {/* EXPORT SECTION */}
-        {validateData() && inputValue && !invalidCharactersPresent && (
-          <div className="flex flex-col justify-start items-start mt-8">
-            <h1 className="flex-none pr-6 font-black">EXPORT</h1>
-            <div className="flex flex-row justify-between w-full">
-              <div>
-                <ExportSelector
-                  dataset={ExportData}
-                  value={exportType}
-                  selectedOption={setExportType}
-                />
+        {nameDescription &&
+          validateData() &&
+          inputValue &&
+          !invalidCharactersPresent && (
+            <div className="flex flex-col justify-start items-start mt-8">
+              <h1 className="flex-none pr-6 font-black">EXPORT</h1>
+              <div className="flex flex-row justify-between w-full">
+                <div>
+                  <ExportSelector
+                    dataset={ExportData}
+                    value={exportType}
+                    selectedOption={setExportType}
+                  />
+                </div>
+                <button
+                  className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
+                  onClick={null}
+                >
+                  EXPORT
+                </button>
               </div>
-              <button
-                className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
-                onClick={null}
-              >
-                EXPORT
-              </button>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );
