@@ -27,7 +27,7 @@ function GenomeCard(props) {
       >
         <div className="max-w-[60%] md:max-w-[80%]">
           <h1 className="text-lg pb-2 font-bold">{props.name}</h1>
-          <p>{props.description}</p>
+          <p className="break-all">{props.description}</p>
         </div>
         <div className="flex flex-col justify-end items-end">
           <button

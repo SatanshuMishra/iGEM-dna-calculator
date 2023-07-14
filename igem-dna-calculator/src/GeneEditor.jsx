@@ -4,15 +4,17 @@ import { FaCopy, FaCloudArrowUp } from "react-icons/fa6";
 import { AnimatePresence, motion } from "framer-motion";
 import "react-toastify/dist/ReactToastify.css";
 
-// CUSTOM IMPORTS
+// COMPONENT IMPORTS
 import SelectorMenu from "./components/SelectionMenu";
 import SelectionComponent from "./components/SelectionComponent";
-import PresetsData from "./data/presets-data-set.json";
-import prefixData from "./data/data-set-A.json";
-import suffixData from "./data/data-set-B.json";
-import ExportData from "./data/export-formats.json";
 import GenomeCard from "./components/GenomeCard";
 import InputComponent from "./components/InputComponent";
+
+// DATA IMPORTS
+import presetData from "./data/presets-data-set.json";
+import prefixData from "./data/data-set-A.json";
+import suffixData from "./data/data-set-B.json";
+import exportData from "./data/export-formats.json";
 
 function GeneEditor() {
   // CONFIG VARIABLES
@@ -34,13 +36,13 @@ function GeneEditor() {
   // STATE CONDITIONS //
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [preset, setPreset] = useState(PresetsData[0].value);
+  const [preset, setPreset] = useState(presetData[0].value);
   const [prefix, setPrefix] = useState(prefixData[0].value);
   const [suffix, setSuffix] = useState(suffixData[0].value);
   const [inputValue, setInputValue] = useState("");
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
-  const [exportType, setExportType] = useState(ExportData[0].value);
+  const [exportType, setExportType] = useState(exportData[0].value);
   const [geneBank, setGeneBank] = useState([]);
   const [toastType, setToastType] = useState("");
 
@@ -56,6 +58,10 @@ function GeneEditor() {
     window.localStorage.setItem("BANK", JSON.stringify(geneBank));
     console.log(geneBank);
   }, [geneBank]);
+
+  useEffect(() => {
+    setInvalidCharactersPresent(re.test(inputValue));
+  }, [inputValue]);
 
   // FUNCTION VARIABLES //
   // SUCCESS TOAST SETTINGS FUNCTIONS
@@ -129,7 +135,7 @@ function GeneEditor() {
   const onChangeTextAreaHandler = () => {
     const textArea = document.querySelector("#sequence-input");
     setInputValue(textArea.value);
-    setInvalidCharactersPresent(re.test(textArea.value));
+    // setInvalidCharactersPresent(re.test(textArea.value));
     textArea.style.height = "auto";
     let scrollHeight = textArea.scrollHeight;
     textArea.style.height =
@@ -160,7 +166,7 @@ function GeneEditor() {
   };
 
   const getFormattedInput = () => {
-    if (inputValue != "") {
+    if (inputValue !== "") {
       if (invalidCharactersPresent) {
         return inputValue.replace(reg, (str) => {
           return `<span style="background-color: #fa0a6a; color: #FFFFFF; padding: 1px 2px; margin: 0px 2px; border-radius:2px;">${str}</span>`;
@@ -201,13 +207,13 @@ function GeneEditor() {
 
   //RESET FUNCTION
   const reset = () => {
-    setPreset(PresetsData[0].value);
+    setPreset(presetData[0].value);
     setPrefix(prefixData[0].value);
     setSuffix(suffixData[0].value);
     setInputValue("");
     setInvalidCharactersPresent(false);
-    setName("");
-    setDescription("");
+    setName("empty");
+    setDescription("empty");
     // document.querySelector("#name-field").value = "";
     // document.querySelector("#description-field").value = "";
     document.querySelector("#sequence-input").value = "";
@@ -247,22 +253,12 @@ function GeneEditor() {
         {/* HEADER */}
         <div className="flex flex-row justify-between items-center">
           <h1 className="text-xl pb-4 font-black">{titleLabel}</h1>
-          {/* <div>
-            <button
-              className="m-2 p-2 bg-blue-600 rounded-lg font-semibold text-white"
-              onClick={() => {
-                notify("copiedSuccess");
-              }}
-            >
-              TEST
-            </button> */}
           <button
             className="m-2 p-2 bg-pink-600 rounded-lg font-semibold text-white"
             onClick={reset}
           >
             RESET
           </button>
-          {/* </div> */}
         </div>
         {/* NAME FIELD */}
         <InputComponent
@@ -284,7 +280,7 @@ function GeneEditor() {
         <SelectionComponent
           label={presetLabel}
           type={"preset"}
-          dataset={PresetsData}
+          dataset={presetData}
           value={preset}
           selectedOption={selectPreset}
         />
@@ -315,7 +311,6 @@ function GeneEditor() {
             placeholder={inputPlaceholderLabel}
             onInput={onChangeTextAreaHandler}
           />
-          {/* {true && <Notification />} */}
           {invalidCharactersPresent && (
             <div className="w-full flex justify-between">
               <p className="text-red-600">Your input has invalid characters.</p>
@@ -331,7 +326,7 @@ function GeneEditor() {
               </button>
             </div>
           )}
-          {!invalidCharactersPresent && inputValue != "" && (
+          {!invalidCharactersPresent && inputValue !== "" && (
             <p className="text-green-600">Your input is valid.</p>
           )}
         </div>
@@ -345,9 +340,9 @@ function GeneEditor() {
           <div className="flex flex-col rounded-tr-lg rounded-br-lg cursor-pointer text-black">
             <div className="h-full flex justify-end p-1 md:p-0 text-white">
               <div
-                className="h-full flex flex-col justify-center px-3 py-3 rounded-tl-lg rounded-bl-lg md:rounded-tl-none md:rounded-bl-none bg-blue-500 text-base"
+                //md:rounded-tl-none md:rounded-bl-none
+                className="h-full flex flex-col justify-center px-3 py-3 rounded-tl-lg rounded-bl-lg  bg-blue-500 text-base"
                 onClick={() => {
-                  // console.log("DEBUG: BANK BOOLEAN\n");
                   !(
                     name &&
                     validateData() &&
@@ -398,7 +393,7 @@ function GeneEditor() {
                   <div className="flex-grow">
                     <SelectorMenu
                       type={"normal"}
-                      dataset={ExportData}
+                      dataset={exportData}
                       value={exportType}
                       selectedOption={setExportType}
                     />
@@ -428,17 +423,20 @@ function GeneEditor() {
           </div>
           {/* LIST SECTION */}
           <div>
-            {geneBank.length > 0
-              ? geneBank.map((genome) => {
-                  console.log(JSON.stringify(genome));
-                  return (
-                    <GenomeCard
-                      name={genome.name}
-                      description={genome.description}
-                    />
-                  );
-                })
-              : "NO GENOME'S HAVE BEEN SAVED"}
+            <AnimatePresence>
+              {geneBank.length > 0
+                ? geneBank.map((genome, i) => {
+                    console.log(JSON.stringify(genome));
+                    return (
+                      <GenomeCard
+                        key={i}
+                        name={genome.name}
+                        description={genome.description}
+                      />
+                    );
+                  })
+                : "NO GENOME'S HAVE BEEN SAVED"}
+            </AnimatePresence>
           </div>
         </div>
       </div>

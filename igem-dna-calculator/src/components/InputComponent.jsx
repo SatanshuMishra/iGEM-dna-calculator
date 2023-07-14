@@ -2,10 +2,13 @@ import React, { useEffect } from "react";
 
 function InputComponent(props) {
   useEffect(() => {
-    if (props.value === "")
+    if (props.value === "empty") {
       document.querySelector(
         `#${props.multiline ? "name" : "text"}-field`
       ).value = "";
+      updateValue("");
+    }
+    // eslint-disable-next-line
   }, [props.value]);
 
   const updateValue = (value) => {
