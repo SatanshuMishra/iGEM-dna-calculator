@@ -12,3 +12,14 @@
 body {
   background-color: #ffbd59;
 }
+
+body {
+  /* #212121 */
+
+  --toastify-toast-width: 250px;
+  --toastify-toast-background: #006aff;
+  --toastify-toast-min-height: 64px;
+  --toastify-toast-max-height: 800px;
+  --toastify-font-family: "Inter", sans-serif;
+  --toastify-z-index: 9999;
+}

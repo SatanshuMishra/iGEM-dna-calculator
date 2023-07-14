@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import React from "react";
+
+import { useRef, useState } from "react";
 import { FaCaretDown } from "react-icons/fa6";
 
-function ExportSelector(props) {
+function SelectionComponent(props) {
   // DATASET FOR FROM WHICH SELECTION OPTIONS ARE GENERATED
   const dataset = props.dataset;
+  // TYPE OF SECLECTION MENU
+  const type = props.type;
   // DETERMINES IF THE SELECTION MENU IS OPEN
   const [isOpen, setIsOpen] = useState(false);
 
@@ -24,12 +28,18 @@ function ExportSelector(props) {
     props.selectedOption(selection);
   };
 
+  const selectPreset = (value, preset) => {
+    isOpen && setIsOpen(false);
+    props.selectedOption(value, preset);
+  };
+
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
 
   return (
-    <div className="flex-1 w-full">
+    //md:max-w-[80%]
+    <div className="w-full">
       <div
         className="my-2 h-auto flex justify-between flex-row-reverse items-center text-black bg-gray-100 pl-4 p-2 text-base rounded-md text-left shadow-lg font-normal cursor-pointer
       "
@@ -44,13 +54,17 @@ function ExportSelector(props) {
           ref={menuRef}
         >
           {dataset.map((data) => {
-            let id = data.id;
+            let key = data.id;
             let value = data.value;
             return (
               <div
-                key={id}
+                key={key}
                 className="pl-4 p-2"
-                onClick={(e) => setSelection(value)}
+                onClick={() =>
+                  type === "normal"
+                    ? setSelection(value)
+                    : selectPreset(value, data.preset)
+                }
               >
                 {value}
               </div>
@@ -62,4 +76,4 @@ function ExportSelector(props) {
   );
 }
 
-export default ExportSelector;
+export default SelectionComponent;
