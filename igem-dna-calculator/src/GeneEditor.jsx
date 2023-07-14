@@ -3,15 +3,16 @@ import { Slide, ToastContainer, toast } from "react-toastify";
 import { FaCopy, FaCloudArrowUp } from "react-icons/fa6";
 import { AnimatePresence, motion } from "framer-motion";
 import "react-toastify/dist/ReactToastify.css";
-// import "react-toastify/dist/ReactToastify.minimal.css";
 
 // CUSTOM IMPORTS
-import SelectorComp from "./components/SelectionComponent";
+import SelectorMenu from "./components/SelectionMenu";
+import SelectionComponent from "./components/SelectionComponent";
 import PresetsData from "./data/presets-data-set.json";
-import SelectorAData from "./data/data-set-A.json";
-import SelectorBData from "./data/data-set-B.json";
+import prefixData from "./data/data-set-A.json";
+import suffixData from "./data/data-set-B.json";
 import ExportData from "./data/export-formats.json";
 import GenomeCard from "./components/GenomeCard";
+import InputComponent from "./components/InputComponent";
 
 function GeneEditor() {
   // CONFIG VARIABLES
@@ -23,8 +24,8 @@ function GeneEditor() {
   let placeHolderText = "SELECT AN OPTION 👀"; // USED TO CHECK IF VALID SECOND OPTION HAS BEEN SELECTED
   let titleLabel = "GENOME EDITOR";
   let presetLabel = "SELECT PRESET";
-  let selectorALabel = "SELECT PREFIX";
-  let selectorBLabel = "SELECT SUFFIX";
+  let prefixSelectorLabel = "SELECT PREFIX";
+  let suffixLabel = "SELECT SUFFIX";
   let inputFieldLabel = "INPUT LABEL";
   let inputPlaceholderLabel = "PLACEHOLDER";
 
@@ -34,18 +35,14 @@ function GeneEditor() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [preset, setPreset] = useState(PresetsData[0].value);
-  const [prefix, setPrefix] = useState(SelectorAData[0].value);
-  const [suffix, setSuffix] = useState(SelectorBData[0].value);
+  const [prefix, setPrefix] = useState(prefixData[0].value);
+  const [suffix, setSuffix] = useState(suffixData[0].value);
   const [inputValue, setInputValue] = useState("");
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
   const [exportType, setExportType] = useState(ExportData[0].value);
   const [geneBank, setGeneBank] = useState([]);
   const [toastType, setToastType] = useState("");
-
-  // const [test, setTest] = useState(new Map());
-
-  // geneBank.
 
   const re = /[^ATGCWSMKRYBDHVN-]/i;
   const reg = /[^ATGCWSMKRYBDHVN-]/gi;
@@ -120,18 +117,12 @@ function GeneEditor() {
     }
   };
 
-  const onChangeNameHandler = () => {
-    const nameDescriptionArea = document.querySelector("#name-field");
-    setName(nameDescriptionArea.value);
+  const onChangeNameHandler = (value) => {
+    setName(value);
   };
 
-  const onChangeDescriptionHandler = () => {
-    const nameDescriptionArea = document.querySelector("#description-field");
-    setDescription(nameDescriptionArea.value);
-    nameDescriptionArea.style.height = "auto";
-    let scrollHeight = nameDescriptionArea.scrollHeight;
-    nameDescriptionArea.style.height =
-      Math.floor(scrollHeight / 24) > 20 ? `480px` : `${scrollHeight}px`;
+  const onChangeDescriptionHandler = (value) => {
+    setDescription(value);
   };
 
   // UPDATE TEXT AREA VIEWPORT SIZE FUNCTION
@@ -148,17 +139,17 @@ function GeneEditor() {
   // PRESET SELECTOR FUNCTION -> USED WITHIN "PRESETSELECT" COMPONENT
   const selectPreset = (value, preset) => {
     setPreset(value);
-    setPrefix(SelectorAData[preset[0]].value);
-    setSuffix(SelectorBData[preset[1]].value);
+    setPrefix(prefixData[preset[0]].value);
+    setSuffix(suffixData[preset[1]].value);
   };
 
   // SELECTOR FUNCTIONS
-  const setSelectedA = (value) => {
+  const setSelectedPrefix = (value) => {
     setPreset("CUSTOM");
     setPrefix(value);
   };
 
-  const setSelectedB = (value) => {
+  const setSelectedSuffix = (value) => {
     setPreset("CUSTOM");
     setSuffix(value);
   };
@@ -211,14 +202,14 @@ function GeneEditor() {
   //RESET FUNCTION
   const reset = () => {
     setPreset(PresetsData[0].value);
-    setPrefix(SelectorAData[0].value);
-    setSuffix(SelectorBData[0].value);
+    setPrefix(prefixData[0].value);
+    setSuffix(suffixData[0].value);
     setInputValue("");
     setInvalidCharactersPresent(false);
     setName("");
     setDescription("");
-    document.querySelector("#name-field").value = "";
-    document.querySelector("#description-field").value = "";
+    // document.querySelector("#name-field").value = "";
+    // document.querySelector("#description-field").value = "";
     document.querySelector("#sequence-input").value = "";
     document.querySelector("#outputDisplay").innerHTML = "";
   };
@@ -274,58 +265,45 @@ function GeneEditor() {
           {/* </div> */}
         </div>
         {/* NAME FIELD */}
-        <div className="flex flex-col justify-between items-start">
-          <h1 className="flex-none pr-6 font-semibold">{nameLabel}</h1>
-          <input
-            id="name-field"
-            type="text"
-            className="my-4 h-auto w-full resize-none pl-4 p-2 text-base rounded-md text-left cursor-text leading-6 shadow-lg text-black bg-gray-100"
-            placeholder={namePlaceholder}
-            onInput={onChangeNameHandler}
-          />
-        </div>
+        <InputComponent
+          multiline={false}
+          label={nameLabel}
+          placeholder={namePlaceholder}
+          value={name}
+          inputHandler={onChangeNameHandler}
+        />
         {/* DESCRIPTION FIELD */}
-        <div className="flex flex-col justify-between items-start">
-          <h1 className="flex-none pr-6 font-semibold">{descriptionLabel}</h1>
-          <textarea
-            id="description-field"
-            type="text"
-            className="my-4 h-auto w-full resize-none pl-4 p-2 text-base rounded-md text-left cursor-text leading-6 shadow-lg text-black bg-gray-100"
-            rows={1}
-            placeholder={descriptionPlaceholder}
-            onInput={onChangeDescriptionHandler}
-          />
-        </div>
+        <InputComponent
+          multiline={true}
+          label={descriptionLabel}
+          placeholder={descriptionPlaceholder}
+          value={description}
+          inputHandler={onChangeDescriptionHandler}
+        />
         {/* PRESET SELECTOR */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <h1 className="flex-none pr-6 font-semibold">{presetLabel}</h1>
-          <SelectorComp
-            type={"preset"}
-            dataset={PresetsData}
-            value={preset}
-            selectedOption={selectPreset}
-          />
-        </div>
-        {/* INFORMATION SELECTOR A */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <h1 className="flex-none pr-6 font-semibold">{selectorALabel}</h1>
-          <SelectorComp
-            type={"normal"}
-            dataset={SelectorAData}
-            value={prefix}
-            selectedOption={setSelectedA}
-          />
-        </div>
-        {/* SELECTOR B */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <h1 className="flex-none pr-6 font-semibold">{selectorBLabel}</h1>
-          <SelectorComp
-            type={"normal"}
-            dataset={SelectorBData}
-            value={suffix}
-            selectedOption={setSelectedB}
-          />
-        </div>
+        <SelectionComponent
+          label={presetLabel}
+          type={"preset"}
+          dataset={PresetsData}
+          value={preset}
+          selectedOption={selectPreset}
+        />
+        {/* PREFIX SELECTOR*/}
+        <SelectionComponent
+          label={prefixSelectorLabel}
+          type={"normal"}
+          dataset={prefixData}
+          value={prefix}
+          selectedOption={setSelectedPrefix}
+        />
+        {/* SUFFIX SELECTOR*/}
+        <SelectionComponent
+          label={suffixLabel}
+          type={"normal"}
+          dataset={suffixData}
+          value={suffix}
+          selectedOption={setSelectedSuffix}
+        />
         {/* INPUT FIELD */}
         <div className=" my-4 flex flex-col justify-between items-start">
           <h1 className="flex-none pr-6 font-semibold">{inputFieldLabel}</h1>
@@ -418,7 +396,7 @@ function GeneEditor() {
                 <h1 className="flex-none pr-6 font-black">EXPORT</h1>
                 <div className="flex w-full">
                   <div className="flex-grow">
-                    <SelectorComp
+                    <SelectorMenu
                       type={"normal"}
                       dataset={ExportData}
                       value={exportType}

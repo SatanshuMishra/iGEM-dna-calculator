@@ -21,7 +21,7 @@ function GenomeCard(props) {
         exit={{ opacity: 0 }}
         transition={{
           layout: {
-            duration: 5,
+            duration: 50,
           },
         }}
       >
@@ -31,7 +31,7 @@ function GenomeCard(props) {
         </div>
         <div className="flex flex-col justify-end items-end">
           <button
-            className="w-fit flex flex-row justify-center items-center text-center my-0.5 px-2 py-2 bg-red-600 rounded-lg font-medium text-white"
+            className="w-fit flex flex-row justify-center items-center text-center my-0.5 px-2 py-2 bg-red-600 rounded-lg font-medium text-white overflow-x-hidden"
             onClick={null}
             ref={removeRef}
           >
@@ -60,7 +60,7 @@ function GenomeCard(props) {
             )}
           </button>
           <button
-            className="w-fit flex flex-row justify-center items-center text-center my-0.5 px-2 py-2 bg-blue-600 rounded-lg font-medium text-white"
+            className="w-fit flex flex-row justify-center items-center text-center my-0.5 px-2 py-2 bg-blue-600 rounded-lg font-medium text-white overflow-x-hidden"
             onClick={null}
             ref={editRef}
           >
