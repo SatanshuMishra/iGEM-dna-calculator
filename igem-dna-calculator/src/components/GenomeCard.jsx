@@ -32,7 +32,9 @@ function GenomeCard(props) {
         <div className="flex flex-col justify-end items-end">
           <button
             className="w-fit flex flex-row justify-center items-center text-center my-0.5 px-2 py-2 bg-red-600 rounded-lg font-medium text-white overflow-x-hidden"
-            onClick={null}
+            onClick={() => {
+              props.onDelete(props.listId);
+            }}
             ref={removeRef}
           >
             <motion.div
@@ -61,7 +63,9 @@ function GenomeCard(props) {
           </button>
           <button
             className="w-fit flex flex-row justify-center items-center text-center my-0.5 px-2 py-2 bg-blue-600 rounded-lg font-medium text-white overflow-x-hidden"
-            onClick={null}
+            onClick={() => {
+              props.onEdit(props.listId);
+            }}
             ref={editRef}
           >
             <motion.div

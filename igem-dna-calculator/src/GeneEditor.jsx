@@ -3,6 +3,7 @@ import { Slide, ToastContainer, toast } from "react-toastify";
 import { FaCopy, FaCloudArrowUp } from "react-icons/fa6";
 import { AnimatePresence, motion } from "framer-motion";
 import "react-toastify/dist/ReactToastify.css";
+import { jsonToFasta, jsonToGenbank } from "@teselagen/bio-parsers";
 
 // COMPONENT IMPORTS
 import SelectorMenu from "./components/SelectionMenu";
@@ -23,7 +24,7 @@ function GeneEditor() {
   let descriptionLabel = "DESCRIPTION";
   let namePlaceholder = "PLACEHOLDER";
   let descriptionPlaceholder = "PLACEHOLDER";
-  let placeHolderText = "SELECT AN OPTION 👀"; // USED TO CHECK IF VALID SECOND OPTION HAS BEEN SELECTED
+  let placeHolderText = suffixData[0].value; // USED TO CHECK IF VALID SECOND OPTION HAS BEEN SELECTED
   let titleLabel = "GENOME EDITOR";
   let presetLabel = "SELECT PRESET";
   let prefixSelectorLabel = "SELECT PREFIX";
@@ -43,11 +44,24 @@ function GeneEditor() {
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
   const [exportType, setExportType] = useState(exportData[0].value);
+  // const [exportFile, setExportFile] = useState();
+
+  const [globalId, setGlobalId] = useState(0);
+  const [currentId, setCurrentId] = useState(false);
   const [geneBank, setGeneBank] = useState([]);
   const [toastType, setToastType] = useState("");
 
   const re = /[^ATGCWSMKRYBDHVN-]/i;
   const reg = /[^ATGCWSMKRYBDHVN-]/gi;
+
+  useEffect(() => {
+    const id = JSON.parse(window.localStorage.getItem("GLOBAL_ID"));
+    if (id) setGlobalId(id);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("GLOBAL_ID", JSON.stringify(globalId));
+  }, [globalId]);
 
   useEffect(() => {
     const data = JSON.parse(window.localStorage.getItem("BANK"));
@@ -56,7 +70,7 @@ function GeneEditor() {
 
   useEffect(() => {
     window.localStorage.setItem("BANK", JSON.stringify(geneBank));
-    console.log(geneBank);
+    // console.log(geneBank);
   }, [geneBank]);
 
   useEffect(() => {
@@ -120,26 +134,45 @@ function GeneEditor() {
           theme: "dark",
         });
         break;
+      case "deleteSuccess":
+        toast("Gene Successfully Deleted", {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        break;
+      case "geneEditSuccess":
+        toast("Gene Successfully Edited", {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        break;
+      case "resetSuccess":
+        toast("Editor Reset Successfully!", {
+          position: "bottom-center",
+          autoClose: 2000,
+          hideProgressBar: true,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        break;
+      default:
+        break;
     }
-  };
-
-  const onChangeNameHandler = (value) => {
-    setName(value);
-  };
-
-  const onChangeDescriptionHandler = (value) => {
-    setDescription(value);
-  };
-
-  // UPDATE TEXT AREA VIEWPORT SIZE FUNCTION
-  const onChangeTextAreaHandler = () => {
-    const textArea = document.querySelector("#sequence-input");
-    setInputValue(textArea.value);
-    // setInvalidCharactersPresent(re.test(textArea.value));
-    textArea.style.height = "auto";
-    let scrollHeight = textArea.scrollHeight;
-    textArea.style.height =
-      Math.floor(scrollHeight / 24) > 20 ? `480px` : `${scrollHeight}px`;
   };
 
   // PRESET SELECTOR FUNCTION -> USED WITHIN "PRESETSELECT" COMPONENT
@@ -165,6 +198,7 @@ function GeneEditor() {
     return prefix && suffix && suffix !== placeHolderText;
   };
 
+  // COLOR CODE INVALID CHARACTERS OR RETURN INPUT IF NOT INVALID CHARACTERS
   const getFormattedInput = () => {
     if (inputValue !== "") {
       if (invalidCharactersPresent) {
@@ -190,19 +224,46 @@ function GeneEditor() {
     return true;
   };
 
+  // ADD GENOME TO BANK
   const bankGene = () => {
-    setGeneBank(() => [
-      ...geneBank,
-      {
+    console.log(currentId);
+    if (currentId !== false) {
+      const index = geneBank.findIndex((gene) => gene.listId === currentId);
+      const temp = geneBank;
+
+      temp[index] = {
+        currentId,
         name,
         description,
         prefix,
         suffix,
         inputValue,
-      },
-    ]);
-    notify("addToBankSuccess");
-    return true;
+      };
+
+      setGeneBank(temp);
+      window.localStorage.setItem("BANK", JSON.stringify(geneBank));
+
+      setCurrentId(false);
+      reset();
+      notify("geneEditSuccess");
+      return true;
+    } else {
+      const listId = globalId;
+      setGeneBank(() => [
+        ...geneBank,
+        {
+          listId,
+          name,
+          description,
+          prefix,
+          suffix,
+          inputValue,
+        },
+      ]);
+      setGlobalId(globalId + 1);
+      notify("addToBankSuccess");
+      return true;
+    }
   };
 
   //RESET FUNCTION
@@ -218,10 +279,168 @@ function GeneEditor() {
     // document.querySelector("#description-field").value = "";
     document.querySelector("#sequence-input").value = "";
     document.querySelector("#outputDisplay").innerHTML = "";
+    notify("resetSuccess");
   };
 
   const clearBank = () => {
     setGeneBank([]);
+    setGlobalId(0);
+  };
+
+  const exportToFile = () => {
+    const options = {
+      isProtein: false,
+      guessIfProtein: false,
+      guessIfProteinOptions: {
+        threshold: 0.9,
+        dnaLetters: ["G", "A", "T", "C"],
+      },
+      inclusive1BasedStart: false,
+      inclusive1BasedEnd: false,
+    };
+    switch (exportType) {
+      case "FASTA (.fasta)":
+        // let data = ``;
+        // geneBank.forEach((genome) => {
+        //   data += `>${genome.name} | ${genome.description}\n${
+        //     genome.prefix + genome.inputValue + genome.suffix
+        //   }\n`;
+        // });
+        // let blob = new Blob([data], { type: "text/plain" });
+        // blob.lastModifiedDate = new Date();
+        // blob.name = "fastaFile.fasta";
+
+        // let link = document.createElement("a");
+        // link.download = "fastaFile.fasta";
+        // link.href = URL.createObjectURL(blob);
+        // link.click();
+        // URL.revokeObjectURL(link.href);
+
+        let outputFastaString = ``;
+        let fastaData = [];
+        geneBank.forEach((genome) => {
+          let sequence = genome.prefix + genome.inputValue + genome.suffix;
+          let size = sequence.length;
+          let name = genome.name;
+          let description = genome.description;
+          fastaData.push({
+            size,
+            sequence,
+            circular: false,
+            name,
+            description,
+            parts: [],
+            primers: [],
+            features: [],
+          });
+        });
+        fastaData.forEach((el) => {
+          outputFastaString += jsonToFasta(el, options) + "\n";
+        });
+        let fastaBlob = new Blob([outputFastaString], { type: "text/plain" });
+        fastaBlob.lastModifiedDate = new Date();
+        fastaBlob.name = "fastaFile.fasta";
+
+        let fastaLink = document.createElement("a");
+        fastaLink.download = "fastaBlob.fasta";
+        fastaLink.href = URL.createObjectURL(fastaBlob);
+        fastaLink.click();
+        URL.revokeObjectURL(fastaLink.href);
+        break;
+      case "GenBank (.gb)":
+        let outputString = ``;
+        let genBankData = [];
+        geneBank.forEach((genome) => {
+          let sequence = genome.prefix + genome.inputValue + genome.suffix;
+          let size = sequence.length;
+          let name = genome.name;
+          let description = genome.description;
+          genBankData.push({
+            size,
+            sequence,
+            circular: false,
+            name,
+            description,
+            parts: [],
+            primers: [],
+            features: [],
+          });
+        });
+        genBankData.forEach((gB) => {
+          outputString += jsonToGenbank(gB, options) + "\n";
+        });
+        let genBlob = new Blob([outputString], { type: "text/plain" });
+        genBlob.lastModifiedDate = new Date();
+        genBlob.name = "genBlobFile.gb";
+
+        let genLink = document.createElement("a");
+        genLink.download = "genBlobFile.gb";
+        genLink.href = URL.createObjectURL(genBlob);
+        genLink.click();
+        URL.revokeObjectURL(genLink.href);
+        break;
+      case "SnapGene (.dna)":
+        console.log("EXPORT SNAPGENE");
+        break;
+      default:
+        break;
+    }
+  };
+
+  const editGenome = (listId) => {
+    if (!name && !description && !inputValue) {
+      let data = geneBank;
+      let geneData = data.find((gene) => gene.listId === listId);
+      if (geneData) {
+        setCurrentId(listId);
+        document.getElementById("name-field").value = geneData.name;
+        setName(geneData.name);
+        document.getElementById("description-field").value =
+          geneData.description;
+        setDescription(geneData.description);
+        setPrefix(geneData.prefix);
+        setSuffix(geneData.suffix);
+        document.getElementById("sequence-input").value = geneData.inputValue;
+        setInputValue(geneData.inputValue);
+      }
+    } else {
+      // SHOW CONFIRMATION DIALOG
+      console.log("Warning: Fields have data!");
+      if (
+        window.confirm(
+          "Warning! Some of the fields have data in them! Are you sure you want to load the new data?"
+        ) === true
+      ) {
+        let data = geneBank;
+        let geneData = data.find((gene) => gene.listId === listId);
+        if (geneData) {
+          setCurrentId(listId);
+          document.getElementById("name-field").value = geneData.name;
+          setName(geneData.name);
+          document.getElementById("description-field").value =
+            geneData.description;
+          setDescription(geneData.description);
+          setPrefix(geneData.prefix);
+          setSuffix(geneData.suffix);
+          document.getElementById("sequence-input").value = geneData.inputValue;
+          setInputValue(geneData.inputValue);
+        }
+      } else {
+        return;
+      }
+    }
+  };
+
+  const removeGenome = (listId) => {
+    let i = 0;
+    let data = geneBank;
+    for (i; i < data.length; i++) {
+      if (data[i].listId === listId) break;
+    }
+    data.splice(i, 1);
+    setGeneBank([...data]);
+    if (geneBank.length === 0) setGlobalId(0);
+    notify("deleteSuccess");
   };
 
   return (
@@ -262,19 +481,21 @@ function GeneEditor() {
         </div>
         {/* NAME FIELD */}
         <InputComponent
+          id="name-field"
           multiline={false}
           label={nameLabel}
           placeholder={namePlaceholder}
           value={name}
-          inputHandler={onChangeNameHandler}
+          inputHandler={setName}
         />
         {/* DESCRIPTION FIELD */}
         <InputComponent
+          id="description-field"
           multiline={true}
           label={descriptionLabel}
           placeholder={descriptionPlaceholder}
           value={description}
-          inputHandler={onChangeDescriptionHandler}
+          inputHandler={setDescription}
         />
         {/* PRESET SELECTOR */}
         <SelectionComponent
@@ -301,15 +522,14 @@ function GeneEditor() {
           selectedOption={setSelectedSuffix}
         />
         {/* INPUT FIELD */}
-        <div className=" my-4 flex flex-col justify-between items-start">
-          <h1 className="flex-none pr-6 font-semibold">{inputFieldLabel}</h1>
-          <textarea
+        <div className="my-4">
+          <InputComponent
             id="sequence-input"
-            type="text"
-            className="my-4 h-auto w-full resize-none pl-4 p-2 text-base rounded-md text-left cursor-text leading-6 shadow-lg text-black bg-gray-100"
-            rows={1}
+            multiline={true}
+            label={inputFieldLabel}
             placeholder={inputPlaceholderLabel}
-            onInput={onChangeTextAreaHandler}
+            value={inputValue}
+            inputHandler={setInputValue}
           />
           {invalidCharactersPresent && (
             <div className="w-full flex justify-between">
@@ -319,7 +539,7 @@ function GeneEditor() {
                 onClick={() => {
                   const textArea = document.querySelector("#sequence-input");
                   textArea.value = inputValue.replaceAll(reg, "");
-                  onChangeTextAreaHandler();
+                  setInputValue(textArea.value);
                 }}
               >
                 Remove Invalid Characters
@@ -400,7 +620,7 @@ function GeneEditor() {
                   </div>
                   <button
                     className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
-                    onClick={null}
+                    onClick={exportToFile}
                   >
                     EXPORT
                   </button>
@@ -430,8 +650,11 @@ function GeneEditor() {
                     return (
                       <GenomeCard
                         key={i}
+                        listId={genome.listId}
                         name={genome.name}
                         description={genome.description}
+                        onEdit={editGenome}
+                        onDelete={removeGenome}
                       />
                     );
                   })
