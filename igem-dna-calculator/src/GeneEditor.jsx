@@ -44,7 +44,6 @@ function GeneEditor() {
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
   const [exportType, setExportType] = useState(exportData[0].value);
-  // const [exportFile, setExportFile] = useState();
 
   const [globalId, setGlobalId] = useState(0);
   const [currentId, setCurrentId] = useState(false);
@@ -70,7 +69,6 @@ function GeneEditor() {
 
   useEffect(() => {
     window.localStorage.setItem("BANK", JSON.stringify(geneBank));
-    // console.log(geneBank);
   }, [geneBank]);
 
   useEffect(() => {
@@ -182,7 +180,6 @@ function GeneEditor() {
     setSuffix(suffixData[preset[1]].value);
   };
 
-  // SELECTOR FUNCTIONS
   const setSelectedPrefix = (value) => {
     setPreset("CUSTOM");
     setPrefix(value);
@@ -226,7 +223,6 @@ function GeneEditor() {
 
   // ADD GENOME TO BANK
   const bankGene = () => {
-    console.log(currentId);
     if (currentId !== false) {
       const index = geneBank.findIndex((gene) => gene.listId === currentId);
       const temp = geneBank;
@@ -380,9 +376,8 @@ function GeneEditor() {
         genLink.click();
         URL.revokeObjectURL(genLink.href);
         break;
-      case "SnapGene (.dna)":
-        console.log("EXPORT SNAPGENE");
-        break;
+      // case "SnapGene (.dna)":
+      //   break;
       default:
         break;
     }
@@ -406,7 +401,6 @@ function GeneEditor() {
       }
     } else {
       // SHOW CONFIRMATION DIALOG
-      console.log("Warning: Fields have data!");
       if (
         window.confirm(
           "Warning! Some of the fields have data in them! Are you sure you want to load the new data?"
@@ -592,43 +586,44 @@ function GeneEditor() {
           </div>
         </div>
         {/* EXPORT SECTION */}
-        {name &&
+        {((name &&
           description &&
           validateData() &&
           inputValue &&
-          !invalidCharactersPresent && (
-            <AnimatePresence>
-              <motion.div
-                className="flex flex-col justify-start items-start mt-8"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  layout: {
-                    duration: 5,
-                  },
-                }}
-              >
-                <h1 className="flex-none pr-6 font-black">EXPORT</h1>
-                <div className="flex w-full">
-                  <div className="flex-grow">
-                    <SelectorMenu
-                      type={"normal"}
-                      dataset={exportData}
-                      value={exportType}
-                      selectedOption={setExportType}
-                    />
-                  </div>
-                  <button
-                    className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
-                    onClick={exportToFile}
-                  >
-                    EXPORT
-                  </button>
+          !invalidCharactersPresent) ||
+          geneBank.length > 0) && (
+          <AnimatePresence>
+            <motion.div
+              className="flex flex-col justify-start items-start mt-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                layout: {
+                  duration: 5,
+                },
+              }}
+            >
+              <h1 className="flex-none pr-6 font-black">EXPORT</h1>
+              <div className="flex w-full">
+                <div className="flex-grow">
+                  <SelectorMenu
+                    type={"normal"}
+                    dataset={exportData}
+                    value={exportType}
+                    selectedOption={setExportType}
+                  />
                 </div>
-              </motion.div>
-            </AnimatePresence>
-          )}
+                <button
+                  className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
+                  onClick={exportToFile}
+                >
+                  EXPORT
+                </button>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        )}
 
         {/* BANK SECTION */}
         <div className="mt-8 flex flex-col">
@@ -647,7 +642,6 @@ function GeneEditor() {
             <AnimatePresence>
               {geneBank.length > 0
                 ? geneBank.map((genome, i) => {
-                    console.log(JSON.stringify(genome));
                     return (
                       <GenomeCard
                         key={i}

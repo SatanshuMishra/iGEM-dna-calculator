@@ -6,9 +6,5 @@
   {
     "id": 1,
     "value": "GenBank (.gb)"
-  },
-  {
-    "id": 2,
-    "value": "SnapGene (.dna)"
   }
 ]
