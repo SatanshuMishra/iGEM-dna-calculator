@@ -1,6 +1,6 @@
 # iGEM-dna-calculator
 
-#### Prototype for a DNA calculator to be used in an iGEM website.
+#### Prototype for a Gene Editor.
 
 <img src="./resources/calulator-visual.png">
 
