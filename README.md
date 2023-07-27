@@ -1,4 +1,4 @@
-# iGEM-dna-calculator
+# iGEM-Gene-Editor
 
 #### Prototype for a Gene Editor.
 
