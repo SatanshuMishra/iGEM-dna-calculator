@@ -80,5 +80,6 @@ Here is a quick overview of each of some the the important files in there:
 The project has been configured to allow for easy setup and integration. The following are key files that you can configure:
 
 1. **GeneEditor.jsx**: You can configure most of the app from this file. Edit the variables at the top of the file to change the provided labels and placeholder texts. [See Image Below]
-   <img src="./resources/variables-config.png" />
+
+<img src="./resources/variables-config.png" />
 2. To configure the options for the various selection fields, edit the .json files located within `src/data/` directory. `data-set-a.json` refers to the prefix options, `data-set-b.json` refers to the suffix options, `presets-data-set.json` refers to the presets options.
