@@ -262,6 +262,7 @@ function GeneEditor() {
       ]);
       setGlobalId(globalId + 1);
       notify("addToBankSuccess");
+      reset();
       return true;
     }
   };
@@ -448,7 +449,7 @@ function GeneEditor() {
       {/* TOAST CONTAINER FOR SUCCESSFULLY COPIED TO CLIPBOARD */}
       <ToastContainer
         toastClassName={() =>
-          `${toastType ? "bg-royal-green" : "bg-red-600"} rounded-3xl p-0 m-0`
+          `${toastType ? "bg-royal-green" : "bg-red-600"} rounded-3xl p-0 my-2`
         }
         bodyClassName={() =>
           "w-full h-full flex flex-row justify-center items-center text-md text-white text-center font-semibold font-med block p-3"
