@@ -23,19 +23,22 @@ function SelectionMenu(props) {
   document.addEventListener("mousedown", closeMenu);
 
   // UPDATES SELECTION & CLOSES THE SELECTION MENU IF OPEN
-  const setSelection = (selection) => {
+  const setSelection = (idx) => {
     isOpen && setIsOpen(false);
-    props.selectedOption(selection);
-  };
-
-  const selectPreset = (value, preset) => {
-    isOpen && setIsOpen(false);
-    props.selectedOption(value, preset);
+    props.selectedOption(idx);
   };
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
+  // (data, idx) => {
+  //   return (
+  //     <div key={idx} className="pl-4 p-2" onClick={setSelection(idx)}>
+  //       {data.value}
+  //     </div>
+  //   );
+  // }
 
   return (
     //md:max-w-[80%]
@@ -53,18 +56,16 @@ function SelectionMenu(props) {
           className="m-2 text-black w-60 bg-white text-base rounded-md text-left mt-1 shadow-lg cursor-pointer absolute"
           ref={menuRef}
         >
-          {dataset.map((data) => {
+          {dataset.map((data, idx) => {
             let key = data.id;
             let value = data.value;
             return (
               <div
                 key={key}
                 className="pl-4 p-2"
-                onClick={() =>
-                  type === "normal"
-                    ? setSelection(value)
-                    : selectPreset(value, data.preset)
-                }
+                onClick={() => {
+                  setSelection(idx);
+                }}
               >
                 {value}
               </div>

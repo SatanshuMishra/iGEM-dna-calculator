@@ -1,22 +1,66 @@
 [
   {
+    "id": 998,
+    "value": "CHOOSE A PRESET 💡",
+    "preset": null,
+    "input": "#000b1a",
+    "inputText": "#ffffff",
+    "prefix&suffix": "#00b3ff",
+    "prefix&suffixText": "#ffffff"
+  },
+  {
     "id": 0,
-    "value": "CUSTOM",
-    "preset": [0, 0]
+    "value": "PROMOTER",
+    "preset": [1, 1],
+    "color": {
+      "input": "#000b1a",
+      "inputText": "#ffffff",
+      "prefix&suffix": "#006eff",
+      "prefix&suffixText": "#ffffff"
+    }
   },
   {
     "id": 1,
-    "value": "PRESET B | C & W",
-    "preset": [2, 3]
+    "value": "RBS",
+    "preset": [2, 2],
+    "color": {
+      "input": "#172e16",
+      "inputText": "#ffffff",
+      "prefix&suffix": "#109142",
+      "prefix&suffixText": "#ffffff"
+    }
   },
   {
     "id": 2,
-    "value": "PRESET C | B & X",
-    "preset": [1, 4]
+    "value": "CDS",
+    "preset": [3, 3],
+    "color": {
+      "input": "#1e2e30",
+      "inputText": "#ffffff",
+      "prefix&suffix": "#63c2cf",
+      "prefix&suffixText": "#000000"
+    }
   },
   {
     "id": 3,
-    "value": "PRESET D | A & W",
-    "preset": [0, 3]
+    "value": "TERMINATOR",
+    "preset": [4, 4],
+    "color": {
+      "input": "#362c0c",
+      "inputText": "#ffffff",
+      "prefix&suffix": "#f2c327",
+      "prefix&suffixText": "#000000"
+    }
+  },
+  {
+    "id": 999,
+    "value": "CUSTOM",
+    "preset": null,
+    "color": {
+      "input": "#000b1a",
+      "inputText": "#ffffff",
+      "prefix&suffix": "#00b3ff",
+      "prefix&suffixText": "#ffffff"
+    }
   }
 ]

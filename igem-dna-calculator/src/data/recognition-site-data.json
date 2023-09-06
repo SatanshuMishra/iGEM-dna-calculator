@@ -1,0 +1,18 @@
+[
+  {
+    "id": 998,
+    "value": "SELECT A RECOGNITION SITE 🗺️"
+  },
+  {
+    "id": 0,
+    "value": "SapI",
+    "prefix": "GAAGAGC",
+    "suffix": "GCTCTTC"
+  },
+  {
+    "id": 1,
+    "value": "BbsI",
+    "prefix": "GTCTTC",
+    "suffix": "GAAGAC"
+  }
+]

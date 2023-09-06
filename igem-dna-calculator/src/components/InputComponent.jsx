@@ -10,7 +10,7 @@ function InputComponent(props) {
   }, [props.value]);
 
   const updateValue = (value) => {
-    props.inputHandler(value);
+    props.inputHandler(value.toUpperCase());
   };
 
   const onChangeDescriptionHandler = () => {

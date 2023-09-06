@@ -13,8 +13,9 @@ import InputComponent from "./components/InputComponent";
 
 // DATA IMPORTS
 import presetData from "./data/presets-data-set.json";
-import prefixData from "./data/data-set-A.json";
-import suffixData from "./data/data-set-B.json";
+import prefixData from "./data/prefix-data.json";
+import suffixData from "./data/suffix-data.json";
+import recognitionSiteData from "./data/recognition-site-data.json";
 import exportData from "./data/export-formats.json";
 
 function GeneEditor() {
@@ -29,6 +30,7 @@ function GeneEditor() {
   let presetLabel = "SELECT PRESET";
   let prefixSelectorLabel = "SELECT PREFIX";
   let suffixLabel = "SELECT SUFFIX";
+  let recognitionLabel = "RECOGNITION SITE";
   let inputFieldLabel = "INPUT LABEL";
   let inputPlaceholderLabel = "PLACEHOLDER";
 
@@ -37,9 +39,11 @@ function GeneEditor() {
   // STATE CONDITIONS //
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [preset, setPreset] = useState(presetData[0].value);
-  const [prefix, setPrefix] = useState(prefixData[0].value);
-  const [suffix, setSuffix] = useState(suffixData[0].value);
+  const [preset, setPreset] = useState(0);
+  const [prefix, setPrefix] = useState(0);
+  const [suffix, setSuffix] = useState(0);
+  const [recognitionSite, setRecognitionSite] = useState(0);
+
   const [inputValue, setInputValue] = useState("");
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
@@ -174,25 +178,32 @@ function GeneEditor() {
   };
 
   // PRESET SELECTOR FUNCTION -> USED WITHIN "PRESETSELECT" COMPONENT
-  const selectPreset = (value, preset) => {
-    setPreset(value);
-    setPrefix(prefixData[preset[0]].value);
-    setSuffix(suffixData[preset[1]].value);
+  const selectPreset = (idx) => {
+    setPreset(idx);
+    if (presetData[idx].id !== 998 && presetData[idx].id !== 999) {
+      setPrefix(presetData[idx].preset[0]);
+      setSuffix(presetData[idx].preset[1]);
+    }
   };
 
-  const setSelectedPrefix = (value) => {
-    setPreset("CUSTOM");
-    setPrefix(value);
+  const setSelectedPrefix = (idx) => {
+    setPreset(presetData.length - 1);
+    setPrefix(idx);
   };
 
-  const setSelectedSuffix = (value) => {
-    setPreset("CUSTOM");
-    setSuffix(value);
+  const setSelectedSuffix = (idx) => {
+    setPreset(presetData.length - 1);
+    setSuffix(idx);
   };
 
   // CHECK IF VALID DATA HAS BEEN SELECTED & ENTERED
-  const validateData = () => {
-    return prefix && suffix && suffix !== placeHolderText;
+  const validateUserInput = () => {
+    return (
+      prefixData[prefix].id !== 998 &&
+      suffixData[suffix].id !== 998 &&
+      recognitionSiteData[recognitionSite].id !== 998 &&
+      inputValue.trim() !== ""
+    );
   };
 
   // COLOR CODE INVALID CHARACTERS OR RETURN INPUT IF NOT INVALID CHARACTERS
@@ -200,17 +211,30 @@ function GeneEditor() {
     if (inputValue !== "") {
       if (invalidCharactersPresent) {
         return inputValue.replace(reg, (str) => {
-          return `<span style="background-color: #fa0a6a; color: #FFFFFF; padding: 1px 2px; margin: 0px 2px; border-radius:2px;">${str}</span>`;
+          return `<span style="background-color: #ff0044; color: #FFFFFF; padding: 1px 2px; margin: 0px 2px; letter-spacing: 0px;">${str}</span>`;
         });
-      } else return inputValue;
+      } else return inputValue.toLocaleUpperCase();
     } else {
-      return `<span style="background-color: #fa0a6a; color: #FFFFFF; padding: 5px; margin: 10px; border-radius:4px;">PLACEHOLDER</span>`;
+      return `<span style="background-color: #ff0044; color: #FFFFFF; padding: 5px; margin: 10px; border-radius:4px;">PLACEHOLDER</span>`;
     }
   };
 
   // RETURN FORMATTED DATA
   const getFormattedData = () => {
-    let formattedString = prefix + getFormattedInput() + suffix;
+    let formattedString =
+      `<span style="background-color: #bfadd9; color: #000000; padding: 1px 2px; margin: 0px 0px; border-radius:2px 0 0 2px; letter-spacing: 3px;">${
+        "NNNNNN" + recognitionSiteData[recognitionSite].prefix + "NN" + "CTCA"
+      }</span>` +
+      `<span style="background-color: ${presetData[preset].color["prefix&suffix"]}; color: ${presetData[preset].color["prefix&suffixText"]}; padding: 1px 2px; margin: 0px 0px; border-radius:0px; letter-spacing: 3px;">${prefixData[prefix].value}</span>` +
+      `<span style="background-color: ${
+        presetData[preset].color["input"]
+      }; color: ${
+        presetData[preset].color["inputText"]
+      }; padding: 1px 2px; margin: 0px 0px; border-radius:0px; letter-spacing: 3px;">${getFormattedInput()}</span>` +
+      `<span style="background-color: ${presetData[preset].color["prefix&suffix"]}; color: ${presetData[preset].color["prefix&suffixText"]}; padding: 1px 2px; margin: 0px 0px; border-radius:0px; letter-spacing: 3px;">${suffixData[suffix].value}</span>` +
+      `<span style="background-color: #bfadd9; color: #000000; padding: 1px 2px; margin: 0px 0px; border-radius:0 2px 2px 0; letter-spacing: 3px;">${
+        "CGAG" + "NN" + recognitionSiteData[recognitionSite].suffix + "NNNNNN"
+      }</span>`;
     document.querySelector("#outputDisplay").innerHTML = formattedString;
   };
 
@@ -234,6 +258,7 @@ function GeneEditor() {
         prefix,
         suffix,
         inputValue,
+        recognitionSite,
       };
 
       setGeneBank(temp);
@@ -254,6 +279,7 @@ function GeneEditor() {
           prefix,
           suffix,
           inputValue,
+          recognitionSite,
         },
       ]);
       setGlobalId(globalId + 1);
@@ -265,15 +291,14 @@ function GeneEditor() {
 
   //RESET FUNCTION
   const reset = () => {
-    setPreset(presetData[0].value);
-    setPrefix(prefixData[0].value);
-    setSuffix(suffixData[0].value);
+    setPreset(0);
+    setPrefix(0);
+    setSuffix(0);
     setInputValue("");
     setInvalidCharactersPresent(false);
     setName("empty");
     setDescription("empty");
-    // document.querySelector("#name-field").value = "";
-    // document.querySelector("#description-field").value = "";
+    setRecognitionSite(0);
     document.querySelector("#sequence-input").value = "";
     document.querySelector("#outputDisplay").innerHTML = "";
     notify("resetSuccess");
@@ -383,8 +408,25 @@ function GeneEditor() {
     }
   };
 
+  const findPreset = (prefix, suffix) => {
+    let preset = presetData.findIndex(
+      (p) =>
+        p.id !== 998 &&
+        p.id !== 999 &&
+        p.preset.toString() === [prefix, suffix].toString()
+    );
+    console.log(
+      presetData[2].preset.toString() === [prefix, suffix].toString()
+    );
+    return preset === -1 ? false : preset;
+  };
+
   const editGenome = (listId) => {
-    if (!name && !description && !inputValue) {
+    if (
+      (!name && !description && !inputValue && prefix === 0,
+      suffix === 0,
+      recognitionSite === 0)
+    ) {
       let data = geneBank;
       let geneData = data.find((gene) => gene.listId === listId);
       if (geneData) {
@@ -394,8 +436,15 @@ function GeneEditor() {
         document.getElementById("description-field").value =
           geneData.description;
         setDescription(geneData.description);
-        setPrefix(geneData.prefix);
-        setSuffix(geneData.suffix);
+        let preset = findPreset(geneData.prefix, geneData.suffix);
+        if (preset) {
+          selectPreset(preset);
+        } else {
+          setPreset(presetData.length - 1);
+          setPrefix(geneData.prefix);
+          setSuffix(geneData.suffix);
+        }
+        setRecognitionSite(geneData.recognitionSite);
         document.getElementById("sequence-input").value = geneData.inputValue;
         setInputValue(geneData.inputValue);
       }
@@ -417,6 +466,7 @@ function GeneEditor() {
           setDescription(geneData.description);
           setPrefix(geneData.prefix);
           setSuffix(geneData.suffix);
+          setRecognitionSite(geneData.recognitionSite);
           document.getElementById("sequence-input").value = geneData.inputValue;
           setInputValue(geneData.inputValue);
         }
@@ -497,7 +547,7 @@ function GeneEditor() {
           label={presetLabel}
           type={"preset"}
           dataset={presetData}
-          value={preset}
+          value={presetData[preset].value}
           selectedOption={selectPreset}
         />
         {/* PREFIX SELECTOR*/}
@@ -505,7 +555,7 @@ function GeneEditor() {
           label={prefixSelectorLabel}
           type={"normal"}
           dataset={prefixData}
-          value={prefix}
+          value={prefixData[prefix].value}
           selectedOption={setSelectedPrefix}
         />
         {/* SUFFIX SELECTOR*/}
@@ -513,8 +563,16 @@ function GeneEditor() {
           label={suffixLabel}
           type={"normal"}
           dataset={suffixData}
-          value={suffix}
+          value={suffixData[suffix].value}
           selectedOption={setSelectedSuffix}
+        />
+        {/* RECOGNITION SITE SELECTOR*/}
+        <SelectionComponent
+          label={recognitionLabel}
+          type={"normal"}
+          dataset={recognitionSiteData}
+          value={recognitionSiteData[recognitionSite].value}
+          selectedOption={setRecognitionSite}
         />
         {/* INPUT FIELD */}
         <div className="my-4">
@@ -549,7 +607,7 @@ function GeneEditor() {
         <div className="flex flex-col md:flex-row w-full justify-between rounded-md shadow-lg text-black bg-gray-50">
           {/* OUTPUT DISPLAY AREA */}
           <div id="outputDisplay" className="p-2 break-all">
-            {validateData() && getFormattedData()}
+            {validateUserInput() ? getFormattedData() : ""}
           </div>
           {/* OPTIONS */}
           <div className="flex flex-col rounded-tr-lg rounded-br-lg cursor-pointer text-black">
@@ -560,7 +618,7 @@ function GeneEditor() {
                 onClick={() => {
                   !(
                     name &&
-                    validateData() &&
+                    validateUserInput() &&
                     inputValue &&
                     !invalidCharactersPresent &&
                     bankGene()
@@ -573,7 +631,7 @@ function GeneEditor() {
                 className="h-full flex flex-col justify-center px-3 py-3 rounded-tr-lg rounded-br-lg bg-teal-500 text-base"
                 onClick={() => {
                   !(
-                    validateData() &&
+                    validateUserInput() &&
                     inputValue &&
                     !invalidCharactersPresent &&
                     copyToClipboard()
@@ -588,7 +646,7 @@ function GeneEditor() {
         {/* EXPORT SECTION */}
         {((name &&
           description &&
-          validateData() &&
+          validateUserInput() &&
           inputValue &&
           !invalidCharactersPresent) ||
           geneBank.length > 0) && (
