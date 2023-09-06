@@ -67,7 +67,7 @@ Here is the visual of the file structure for the project:
         presets-data-set.json
 ```
 
-Here is a quick overview of each of some the the important files in there:
+Here is a quick overview of the most important files in there:
 
 - **GeneEditor.jsx**: This is your main file. This is where all the various components come together to make the app work.
 - **GenomeCard.jsx**: This is the component file for a Genome Card which is displayed in the GenomeBank section.
