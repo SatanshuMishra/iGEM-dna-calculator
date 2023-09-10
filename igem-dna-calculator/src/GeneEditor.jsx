@@ -318,10 +318,7 @@ function GeneEditor() {
       setGeneBank(dataset);
       window.localStorage.setItem("BANK", JSON.stringify(geneBank));
 
-      setCurrentId(false);
-      reset();
       notify("geneEditSuccess");
-      return true;
     } else {
       const listId = globalId;
       setGeneBank(() => [
@@ -338,10 +335,12 @@ function GeneEditor() {
         },
       ]);
       setGlobalId(globalId + 1);
+
       notify("addToBankSuccess");
-      reset();
-      return true;
     }
+
+    reset();
+    return true;
   };
 
   // RESETS ALL THE FIELDS IN THE CALCULATOR. YOU WILL LOSE ALL YOUR DATA.
@@ -351,6 +350,7 @@ function GeneEditor() {
     setSuffix(0);
     setInputValue("");
     setInvalidCharactersPresent(false);
+    setCurrentId(false);
     setName("empty");
     setDescription("empty");
     setStrictToggle(false);
