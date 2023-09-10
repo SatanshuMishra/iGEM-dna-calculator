@@ -17,70 +17,99 @@ import prefixData from "./data/prefix-data.json";
 import suffixData from "./data/suffix-data.json";
 import recognitionSiteData from "./data/recognition-site-data.json";
 import exportData from "./data/export-formats.json";
+import Switch from "./components/Switch";
 
 function GeneEditor() {
   // CONFIG VARIABLES
   // CONFIGURE THE FOLLOWING VARIABLES TO SETUP THE CALCULATOR LABELS & BEHAVIOR
+
   let nameLabel = "NAME";
   let descriptionLabel = "DESCRIPTION";
-  let namePlaceholder = "PLACEHOLDER";
-  let descriptionPlaceholder = "PLACEHOLDER";
+  let namePlaceholder = "ENTER THE NAME OF THE DNA";
+  let descriptionPlaceholder = "ENTER THE DESCRIPTION OF THE DNA";
   let placeHolderText = suffixData[0].value; // USED TO CHECK IF VALID SECOND OPTION HAS BEEN SELECTED
-  let titleLabel = "GENOME EDITOR";
+  let titleLabel = "DNA CALCULATOR";
   let presetLabel = "SELECT PRESET";
   let prefixSelectorLabel = "SELECT PREFIX";
   let suffixLabel = "SELECT SUFFIX";
-  let recognitionLabel = "RECOGNITION SITE";
+  let recognitionLabel = "SELECT RECOGNITION SITE";
   let inputFieldLabel = "INPUT LABEL";
   let inputPlaceholderLabel = "PLACEHOLDER";
 
   // ---------------------------------------------------------------- //
 
-  // STATE CONDITIONS //
+  // ~~~~~~ STATE CONDITIONS ~~~~~~ //
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [preset, setPreset] = useState(0);
   const [prefix, setPrefix] = useState(0);
   const [suffix, setSuffix] = useState(0);
   const [recognitionSite, setRecognitionSite] = useState(0);
+  const [strictToggle, setStrictToggle] = useState(false);
+  const [colorToggle, setColorToggle] = useState(false);
 
   const [inputValue, setInputValue] = useState("");
   const [invalidCharactersPresent, setInvalidCharactersPresent] =
     useState(false);
-  const [exportType, setExportType] = useState(exportData[0].value);
+  const [exportSeqType, setExportSeqType] = useState(0);
+  const [exportBankType, setExportBankType] = useState(0);
 
   const [globalId, setGlobalId] = useState(0);
   const [currentId, setCurrentId] = useState(false);
   const [geneBank, setGeneBank] = useState([]);
   const [toastType, setToastType] = useState("");
 
-  const re = /[^ATGCWSMKRYBDHVN-]/i;
-  const reg = /[^ATGCWSMKRYBDHVN-]/gi;
+  // REGEX USED TO DEFINE THE VALID CHARACTERS
 
+  // STRICT MODE REGEX
+  let sre = /[^AGCT-]/i;
+  let sreg = /[^AGCT-]/gi;
+
+  // RELAXED MODE REGEX
+  let re = /[^ATGCWSMKRYBDHVN-]/i;
+  let reg = /[^ATGCWSMKRYBDHVN-]/gi;
+
+  // ON STRICT MODE TOGGLE, RE-CHECKS THE INPUT SEQUENCE
+  useEffect(() => {
+    validateUserInput() && getFormattedData();
+  }, [strictToggle]);
+
+  // ON RELOAD, SETS CLIENT GLOBAL ID TO LOCAL STORAGE GLOBAL_ID IF IT EXISTS
   useEffect(() => {
     const id = JSON.parse(window.localStorage.getItem("GLOBAL_ID"));
     if (id) setGlobalId(id);
   }, []);
 
+  // SETS LOCAL STORAGE GLOBAL_ID WHEN CLIENT GLOBAL ID CHANGES.
   useEffect(() => {
     window.localStorage.setItem("GLOBAL_ID", JSON.stringify(globalId));
   }, [globalId]);
 
+  // ON RELOAD, SETS CLIENT BANK TO LOCAL STORAGE GENEBANK IF IT EXISTS
   useEffect(() => {
     const data = JSON.parse(window.localStorage.getItem("BANK"));
     if (data) if (data.length !== 0) setGeneBank(data);
   }, []);
 
+  // WHEN CLIENT BANK CHANGES, UPDATES LOCAL STORAGE GENEBANK TO MATCH THE CHANGE
   useEffect(() => {
     window.localStorage.setItem("BANK", JSON.stringify(geneBank));
   }, [geneBank]);
 
+  // WHEN THE INPUTED VALUE CHANGES, VALIDATES THE INPUT TO
   useEffect(() => {
-    setInvalidCharactersPresent(re.test(inputValue));
+    strictToggle && setInvalidCharactersPresent(sre.test(inputValue));
+    !strictToggle && setInvalidCharactersPresent(re.test(inputValue));
   }, [inputValue]);
 
-  // FUNCTION VARIABLES //
-  // SUCCESS TOAST SETTINGS FUNCTIONS
+  // WHEN THE VALUE OF PREFIX, SUFFIX, OR RECOGNITION SITE CHANGES, WILL RUN THE ISPRESET FUNCTION TO CHECK IF A PRESET IS SELECTED
+  useEffect(() => {
+    isPreset();
+  }, [prefix, suffix, recognitionSite]);
+
+  // ~~~~~~ FUNCTIONS ~~~~~~ //
+
+  // SETS THE CHARACTERISTICS FOR THE TOAST NOTIFICATION
   // TODO: ADD CONDITION FOR EMPTY COPY TO CLIPBOARD
 
   const notify = (type) => {
@@ -177,23 +206,36 @@ function GeneEditor() {
     }
   };
 
-  // PRESET SELECTOR FUNCTION -> USED WITHIN "PRESETSELECT" COMPONENT
+  // SELECTS THE CHOSEN PRESET. UPDATES THE PREFIX, SUFFIX AND RECOGNITION SITE FIELDS BASED UPON THE SELECTED PRESET
   const selectPreset = (idx) => {
     setPreset(idx);
     if (presetData[idx].id !== 998 && presetData[idx].id !== 999) {
       setPrefix(presetData[idx].preset[0]);
       setSuffix(presetData[idx].preset[1]);
+      // SINCE ALL PRESETS ARE Lv0FP, AUTOMATICALLY SET RECOGNITION SITE TO BbsI
+      setRecognitionSite(presetData[idx].preset[2]);
     }
   };
 
-  const setSelectedPrefix = (idx) => {
-    setPreset(presetData.length - 1);
-    setPrefix(idx);
-  };
-
-  const setSelectedSuffix = (idx) => {
-    setPreset(presetData.length - 1);
-    setSuffix(idx);
+  // CHECKS IF A PRESET IS SELECTED
+  const isPreset = () => {
+    if (prefix === 0 || suffix === 0 || recognitionSite === 0) {
+      setPreset(0);
+      return;
+    }
+    let presetIdx = presetData.findIndex(
+      (p) =>
+        p.id !== 998 &&
+        p.id !== 999 &&
+        p.preset[0] === prefix &&
+        p.preset[1] === suffix &&
+        p.preset[2] === recognitionSite
+    );
+    if (presetIdx !== -1) {
+      setPreset(presetIdx);
+    } else {
+      setPreset(presetData.length - 1);
+    }
   };
 
   // CHECK IF VALID DATA HAS BEEN SELECTED & ENTERED
@@ -206,11 +248,11 @@ function GeneEditor() {
     );
   };
 
-  // COLOR CODE INVALID CHARACTERS OR RETURN INPUT IF NOT INVALID CHARACTERS
+  // COLOR CODES INVALID CHARACTERS IN RED AND RETURNS THEM
   const getFormattedInput = () => {
     if (inputValue !== "") {
       if (invalidCharactersPresent) {
-        return inputValue.replace(reg, (str) => {
+        return inputValue.replace(strictToggle ? sreg : reg, (str) => {
           return `<span style="background-color: #ff0044; color: #FFFFFF; padding: 1px 2px; margin: 0px 2px; letter-spacing: 0px;">${str}</span>`;
         });
       } else return inputValue.toLocaleUpperCase();
@@ -219,7 +261,7 @@ function GeneEditor() {
     }
   };
 
-  // RETURN FORMATTED DATA
+  // COLOR CODES THE OUTPUT TO ALLOW FOR READERS TO EASILY IDENTIFY THE DIFFERNET PARTS OF THE SEQUENCE
   const getFormattedData = () => {
     let formattedString =
       `<span style="background-color: #bfadd9; color: #000000; padding: 1px 2px; margin: 0px 0px; border-radius:2px 0 0 2px; letter-spacing: 3px;">${
@@ -238,20 +280,31 @@ function GeneEditor() {
     document.querySelector("#outputDisplay").innerHTML = formattedString;
   };
 
-  // COPY TO CLIPBOARD
+  // CODE TO COPY TO CLIPBOARD
+  // TODO: UPDATE COPIED CONTENT
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(prefix + inputValue + suffix);
+    navigator.clipboard.writeText(
+      `NNNNNN` +
+        recognitionSiteData[recognitionSite].prefix +
+        `NN` +
+        prefixData[prefix].value +
+        inputValue +
+        suffixData[suffix].value +
+        `NN` +
+        recognitionSiteData[recognitionSite].suffix +
+        "NNNNNN"
+    );
     notify("copiedSuccess");
     return true;
   };
 
-  // ADD GENOME TO BANK
+  // ADDS THE CURRENT GENOME TO THE GENOME BANK. IF THE GENOME ID ALREADY EXISTS IN THE BANK, THEN IT REPLACES THE EXISTING VALUES WITH THE NEW ONES.
   const bankGene = () => {
     if (currentId !== false) {
       const index = geneBank.findIndex((gene) => gene.listId === currentId);
-      const temp = geneBank;
+      const dataset = geneBank;
 
-      temp[index] = {
+      dataset[index] = {
         currentId,
         name,
         description,
@@ -259,9 +312,10 @@ function GeneEditor() {
         suffix,
         inputValue,
         recognitionSite,
+        strictToggle,
       };
 
-      setGeneBank(temp);
+      setGeneBank(dataset);
       window.localStorage.setItem("BANK", JSON.stringify(geneBank));
 
       setCurrentId(false);
@@ -280,6 +334,7 @@ function GeneEditor() {
           suffix,
           inputValue,
           recognitionSite,
+          strictToggle,
         },
       ]);
       setGlobalId(globalId + 1);
@@ -289,7 +344,7 @@ function GeneEditor() {
     }
   };
 
-  //RESET FUNCTION
+  // RESETS ALL THE FIELDS IN THE CALCULATOR. YOU WILL LOSE ALL YOUR DATA.
   const reset = () => {
     setPreset(0);
     setPrefix(0);
@@ -298,18 +353,76 @@ function GeneEditor() {
     setInvalidCharactersPresent(false);
     setName("empty");
     setDescription("empty");
+    setStrictToggle(false);
     setRecognitionSite(0);
     document.querySelector("#sequence-input").value = "";
     document.querySelector("#outputDisplay").innerHTML = "";
     notify("resetSuccess");
   };
 
+  // EMPTIES THE BANK OF ALL DATA.
   const clearBank = () => {
     setGeneBank([]);
     setGlobalId(0);
   };
 
-  const exportToFile = () => {
+  // EXPORTS THE DATA TO THE SELECTED FILE FORMAT
+  const exportToFile = (isBank = true) => {
+    let data = [];
+    if (isBank) {
+      geneBank.forEach((genome) => {
+        let sequence =
+          "NNNNNN" +
+          recognitionSiteData[recognitionSite].prefix +
+          "NN" +
+          "CTCA" +
+          prefixData[genome.prefix].value +
+          genome.inputValue +
+          suffixData[genome.suffix].value +
+          "CGAG" +
+          "NN" +
+          recognitionSiteData[recognitionSite].suffix +
+          "NNNNNN";
+        let size = sequence.length;
+        let name = genome.name;
+        let description = genome.description;
+        data.push({
+          size,
+          sequence,
+          circular: false,
+          name,
+          description,
+          parts: [],
+          primers: [],
+          features: [],
+        });
+      });
+    } else {
+      let sequence =
+        "NNNNNN" +
+        recognitionSiteData[recognitionSite].prefix +
+        "NN" +
+        "CTCA" +
+        prefixData[prefix].value +
+        inputValue +
+        suffixData[suffix].value +
+        "CGAG" +
+        "NN" +
+        recognitionSiteData[recognitionSite].suffix +
+        "NNNNNN";
+      let size = sequence.length;
+      data.push({
+        size,
+        sequence,
+        circular: false,
+        name,
+        description,
+        parts: [],
+        primers: [],
+        features: [],
+      });
+    }
+
     const options = {
       isProtein: false,
       guessIfProtein: false,
@@ -320,46 +433,18 @@ function GeneEditor() {
       inclusive1BasedStart: false,
       inclusive1BasedEnd: false,
     };
-    switch (exportType) {
+    let type = isBank
+      ? exportData[exportBankType].value
+      : exportData[exportSeqType].value;
+    switch (type) {
       case "FASTA (.fasta)":
-        // let data = ``;
-        // geneBank.forEach((genome) => {
-        //   data += `>${genome.name} | ${genome.description}\n${
-        //     genome.prefix + genome.inputValue + genome.suffix
-        //   }\n`;
-        // });
-        // let blob = new Blob([data], { type: "text/plain" });
-        // blob.lastModifiedDate = new Date();
-        // blob.name = "fastaFile.fasta";
-
-        // let link = document.createElement("a");
-        // link.download = "fastaFile.fasta";
-        // link.href = URL.createObjectURL(blob);
-        // link.click();
-        // URL.revokeObjectURL(link.href);
-
         let outputFastaString = ``;
-        let fastaData = [];
-        geneBank.forEach((genome) => {
-          let sequence = genome.prefix + genome.inputValue + genome.suffix;
-          let size = sequence.length;
-          let name = genome.name;
-          let description = genome.description;
-          fastaData.push({
-            size,
-            sequence,
-            circular: false,
-            name,
-            description,
-            parts: [],
-            primers: [],
-            features: [],
-          });
-        });
-        fastaData.forEach((el) => {
+        data.forEach((el) => {
           outputFastaString += jsonToFasta(el, options) + "\n";
         });
-        let fastaBlob = new Blob([outputFastaString], { type: "text/plain" });
+        let fastaBlob = new Blob([outputFastaString], {
+          type: "text/plain",
+        });
         fastaBlob.lastModifiedDate = new Date();
         fastaBlob.name = "fastaFile.fasta";
 
@@ -371,24 +456,7 @@ function GeneEditor() {
         break;
       case "GenBank (.gb)":
         let outputString = ``;
-        let genBankData = [];
-        geneBank.forEach((genome) => {
-          let sequence = genome.prefix + genome.inputValue + genome.suffix;
-          let size = sequence.length;
-          let name = genome.name;
-          let description = genome.description;
-          genBankData.push({
-            size,
-            sequence,
-            circular: false,
-            name,
-            description,
-            parts: [],
-            primers: [],
-            features: [],
-          });
-        });
-        genBankData.forEach((gB) => {
+        data.forEach((gB) => {
           outputString += jsonToGenbank(gB, options) + "\n";
         });
         let genBlob = new Blob([outputString], { type: "text/plain" });
@@ -401,13 +469,12 @@ function GeneEditor() {
         genLink.click();
         URL.revokeObjectURL(genLink.href);
         break;
-      // case "SnapGene (.dna)":
-      //   break;
       default:
         break;
     }
   };
 
+  // CHECKS IF THE SELECTED VALUES FOR PREFIX, SUFFIX, AND RECOGNITION SITE ARE A PREFIX. IF SO SETS THE THE PREFIX.
   const findPreset = (prefix, suffix) => {
     let preset = presetData.findIndex(
       (p) =>
@@ -421,11 +488,15 @@ function GeneEditor() {
     return preset === -1 ? false : preset;
   };
 
+  // EDITING A SEQUENCE IN THE BANK
   const editGenome = (listId) => {
     if (
-      (!name && !description && !inputValue && prefix === 0,
-      suffix === 0,
-      recognitionSite === 0)
+      !name &&
+      !description &&
+      !inputValue &&
+      prefix === 0 &&
+      suffix === 0 &&
+      recognitionSite === 0
     ) {
       let data = geneBank;
       let geneData = data.find((gene) => gene.listId === listId);
@@ -436,6 +507,7 @@ function GeneEditor() {
         document.getElementById("description-field").value =
           geneData.description;
         setDescription(geneData.description);
+        setStrictToggle(geneData.strictToggle);
         let preset = findPreset(geneData.prefix, geneData.suffix);
         if (preset) {
           selectPreset(preset);
@@ -476,6 +548,7 @@ function GeneEditor() {
     }
   };
 
+  // REMOVING A SEQUENCE FROM THE BANK
   const removeGenome = (listId) => {
     let i = 0;
     let data = geneBank;
@@ -515,206 +588,306 @@ function GeneEditor() {
 
       <div className="w-full p-6 rounded-lg bg-white">
         {/* HEADER */}
-        <div className="flex flex-row justify-between items-center">
-          <h1 className="text-xl pb-4 font-black">{titleLabel}</h1>
-          <button
-            className="m-2 p-2 bg-pink-600 rounded-lg font-semibold text-white"
-            onClick={reset}
-          >
-            RESET
-          </button>
-        </div>
-        {/* NAME FIELD */}
-        <InputComponent
-          id="name-field"
-          multiline={false}
-          label={nameLabel}
-          placeholder={namePlaceholder}
-          value={name}
-          inputHandler={setName}
-        />
-        {/* DESCRIPTION FIELD */}
-        <InputComponent
-          id="description-field"
-          multiline={true}
-          label={descriptionLabel}
-          placeholder={descriptionPlaceholder}
-          value={description}
-          inputHandler={setDescription}
-        />
-        {/* PRESET SELECTOR */}
-        <SelectionComponent
-          label={presetLabel}
-          type={"preset"}
-          dataset={presetData}
-          value={presetData[preset].value}
-          selectedOption={selectPreset}
-        />
-        {/* PREFIX SELECTOR*/}
-        <SelectionComponent
-          label={prefixSelectorLabel}
-          type={"normal"}
-          dataset={prefixData}
-          value={prefixData[prefix].value}
-          selectedOption={setSelectedPrefix}
-        />
-        {/* SUFFIX SELECTOR*/}
-        <SelectionComponent
-          label={suffixLabel}
-          type={"normal"}
-          dataset={suffixData}
-          value={suffixData[suffix].value}
-          selectedOption={setSelectedSuffix}
-        />
-        {/* RECOGNITION SITE SELECTOR*/}
-        <SelectionComponent
-          label={recognitionLabel}
-          type={"normal"}
-          dataset={recognitionSiteData}
-          value={recognitionSiteData[recognitionSite].value}
-          selectedOption={setRecognitionSite}
-        />
-        {/* INPUT FIELD */}
-        <div className="my-4">
-          <InputComponent
-            id="sequence-input"
-            multiline={true}
-            label={inputFieldLabel}
-            placeholder={inputPlaceholderLabel}
-            value={inputValue}
-            inputHandler={setInputValue}
-          />
-          {invalidCharactersPresent && (
-            <div className="w-full flex justify-between">
-              <p className="text-red-600">Your input has invalid characters.</p>
-              <button
-                className=" px-4 py-2 bg-emerald-600 rounded-lg text-white"
-                onClick={() => {
-                  const textArea = document.querySelector("#sequence-input");
-                  textArea.value = inputValue.replaceAll(reg, "");
-                  setInputValue(textArea.value);
-                }}
-              >
-                Remove Invalid Characters
-              </button>
-            </div>
-          )}
-          {!invalidCharactersPresent && inputValue !== "" && (
-            <p className="text-green-600">Your input is valid.</p>
-          )}
-        </div>
-        {/* OUTPUT BOX */}
-        <div className="flex flex-col md:flex-row w-full justify-between rounded-md shadow-lg text-black bg-gray-50">
-          {/* OUTPUT DISPLAY AREA */}
-          <div id="outputDisplay" className="p-2 break-all">
-            {validateUserInput() ? getFormattedData() : ""}
+        <section>
+          <div className="flex flex-row justify-between items-center mb-2">
+            <h1 className="text-3xl font-black">{titleLabel}</h1>
+            <button
+              className="m-2 p-2 bg-pink-600 rounded-lg font-semibold text-white"
+              onClick={reset}
+            >
+              RESET
+            </button>
           </div>
-          {/* OPTIONS */}
-          <div className="flex flex-col rounded-tr-lg rounded-br-lg cursor-pointer text-black">
-            <div className="h-full flex justify-end p-1 md:p-0 text-white">
-              <div
-                //md:rounded-tl-none md:rounded-bl-none
-                className="h-full flex flex-col justify-center px-3 py-3 rounded-tl-lg rounded-bl-lg  bg-blue-500 text-base"
-                onClick={() => {
-                  !(
-                    name &&
-                    validateUserInput() &&
-                    inputValue &&
-                    !invalidCharactersPresent &&
-                    bankGene()
-                  ) && notify("addToBankFailed");
-                }}
-              >
-                <FaCloudArrowUp />
+          {/* CALCULATOR SETTINGS */}
+          <div className="flex flex-row justify-between items-center mb-2">
+            <h1 className="text-xl pb-2 font-bold">CALCULATOR SETTINGS</h1>
+            <div className="flex flex-row items-center">
+              <div className="m-2 flex flex-col items-center justify-center">
+                <p className="flex-none font-normal py-1">STRICT MODE</p>
+                <Switch toggle={strictToggle} setToggle={setStrictToggle} />
               </div>
-              <div
-                className="h-full flex flex-col justify-center px-3 py-3 rounded-tr-lg rounded-br-lg bg-teal-500 text-base"
-                onClick={() => {
-                  !(
-                    validateUserInput() &&
-                    inputValue &&
-                    !invalidCharactersPresent &&
-                    copyToClipboard()
-                  ) && notify("copyFailed");
-                }}
-              >
-                <FaCopy />
+              <div className="m-2 flex flex-col items-center justify-center">
+                <p className="flex-none font-normal py-1">COLOR MODE</p>
+                <Switch toggle={colorToggle} setToggle={setColorToggle} />
               </div>
             </div>
           </div>
-        </div>
-        {/* EXPORT SECTION */}
-        {((name &&
+        </section>
+        {/* DNA INFORMATION */}
+        <section>
+          <div className="mb-2">
+            <h1 className="text-xl pb-2 font-bold">DNA INFORMATION</h1>
+            {/* NAME FIELD */}
+            <InputComponent
+              id="name-field"
+              multiline={false}
+              label={nameLabel}
+              placeholder={namePlaceholder}
+              value={name}
+              inputHandler={setName}
+            />
+            {/* DESCRIPTION FIELD */}
+            <InputComponent
+              id="description-field"
+              multiline={true}
+              label={descriptionLabel}
+              placeholder={descriptionPlaceholder}
+              value={description}
+              inputHandler={setDescription}
+            />
+          </div>
+        </section>
+        {/* DNA SEQUENCE */}
+        <section>
+          <div className="mb-2">
+            <h1 className="text-xl pb-2 font-bold">DNA SEQUENCE</h1>
+            <p className="flex-none font-normal pt-1 pb-2">
+              CHOOSE FROM THE SELECTION OF PRESET SEQUENCES IN{" "}
+              <span className="text-royal-yellow font-bold">Lv0FP</span>:
+            </p>
+            {/* PRESET SELECTOR */}
+            <SelectionComponent
+              label={presetLabel}
+              type={"preset"}
+              dataset={presetData}
+              value={presetData[preset].value}
+              selectedOption={selectPreset}
+            />
+            <p className="flex-none font-normal py-2">
+              OR, MAKE YOUR OWN CUSTOM SEQUENCE:
+            </p>
+            {/* PREFIX SELECTOR*/}
+            <SelectionComponent
+              label={prefixSelectorLabel}
+              type={"normal"}
+              dataset={prefixData}
+              value={prefixData[prefix].value}
+              selectedOption={setPrefix}
+            />
+            {/* SUFFIX SELECTOR*/}
+            <SelectionComponent
+              label={suffixLabel}
+              type={"normal"}
+              dataset={suffixData}
+              value={suffixData[suffix].value}
+              selectedOption={setSuffix}
+            />
+            {/* RECOGNITION SITE SELECTOR*/}
+            <SelectionComponent
+              label={recognitionLabel}
+              type={"normal"}
+              dataset={recognitionSiteData}
+              value={recognitionSiteData[recognitionSite].value}
+              selectedOption={setRecognitionSite}
+            />
+          </div>
+        </section>
+        {/* INPUT SEQUENCE */}
+        <section>
+          <div className="mb-2">
+            <h1 className="text-xl pb-2 font-bold">INPUT SEQUENCE</h1>
+            <p className="flex-none font-normal py-1">
+              INPUT YOUR SEQUENCE BELOW:
+            </p>
+            {/* INPUT FIELD */}
+            <InputComponent
+              id="sequence-input"
+              multiline={true}
+              placeholder={inputPlaceholderLabel}
+              value={inputValue}
+              inputHandler={setInputValue}
+            />
+            {invalidCharactersPresent && (
+              <div className="w-full flex justify-between">
+                <p className="text-red-600">
+                  Your input has invalid characters.
+                </p>
+                <button
+                  className=" px-4 py-2 bg-emerald-600 rounded-lg text-white"
+                  onClick={() => {
+                    const textArea = document.querySelector("#sequence-input");
+                    textArea.value = inputValue.replaceAll(
+                      strictToggle ? sreg : reg,
+                      ""
+                    );
+                    setInputValue(textArea.value);
+                  }}
+                >
+                  Remove Invalid Characters
+                </button>
+              </div>
+            )}
+            {!invalidCharactersPresent && inputValue !== "" && (
+              <p className="text-green-600">Your input is valid.</p>
+            )}
+          </div>
+        </section>
+        {/* RESULT */}
+        <section>
+          <div className="mb-2">
+            <h1 className="text-xl pb-2 font-bold">RESULT</h1>
+            {/* OUTPUT BOX */}
+            <div className="flex flex-col md:flex-row w-full justify-between rounded-md shadow-lg text-black bg-gray-50">
+              {/* OUTPUT DISPLAY AREA */}
+              <div id="outputDisplay" className="p-2 break-all">
+                {validateUserInput() ? getFormattedData() : ""}
+              </div>
+              {/* OPTIONS */}
+              <div className="flex flex-col rounded-tr-lg rounded-br-lg cursor-pointer text-black">
+                <div className="h-full flex justify-end p-1 md:p-0 text-white">
+                  <div
+                    //md:rounded-tl-none md:rounded-bl-none
+                    className="h-full flex flex-col justify-center px-3 py-3 rounded-tl-lg rounded-bl-lg  bg-blue-500 text-base"
+                    onClick={() => {
+                      !(
+                        name &&
+                        validateUserInput() &&
+                        inputValue &&
+                        !invalidCharactersPresent &&
+                        bankGene()
+                      ) && notify("addToBankFailed");
+                    }}
+                  >
+                    <FaCloudArrowUp />
+                  </div>
+                  <div
+                    className="h-full flex flex-col justify-center px-3 py-3 rounded-tr-lg rounded-br-lg bg-teal-500 text-base"
+                    onClick={() => {
+                      !(
+                        validateUserInput() &&
+                        inputValue &&
+                        !invalidCharactersPresent &&
+                        copyToClipboard()
+                      ) && notify("copyFailed");
+                    }}
+                  >
+                    <FaCopy />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* EXPORT ACTIVE SEQUENCE SECTION */}
+        {name &&
           description &&
           validateUserInput() &&
           inputValue &&
-          !invalidCharactersPresent) ||
-          geneBank.length > 0) && (
-          <AnimatePresence>
-            <motion.div
-              className="flex flex-col justify-start items-start mt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                layout: {
-                  duration: 5,
-                },
-              }}
-            >
-              <h1 className="flex-none pr-6 font-black">EXPORT</h1>
-              <div className="flex w-full">
-                <div className="flex-grow">
-                  <SelectorMenu
-                    type={"normal"}
-                    dataset={exportData}
-                    value={exportType}
-                    selectedOption={setExportType}
-                  />
-                </div>
-                <button
-                  className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
-                  onClick={exportToFile}
+          !invalidCharactersPresent && (
+            <section>
+              <AnimatePresence>
+                <motion.div
+                  className="flex flex-col justify-start items-start mt-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    layout: {
+                      duration: 5,
+                    },
+                  }}
                 >
-                  EXPORT
-                </button>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        )}
-
-        {/* BANK SECTION */}
-        <div className="mt-8 flex flex-col">
-          {/* HEADER */}
-          <div className="flex flex-row justify-between items-center">
-            <h1 className="text-xl pb-4 font-black h-full">GENOME BANK</h1>
-            <button
-              className="m-2 p-2 bg-pink-600 rounded-lg font-semibold text-white"
-              onClick={clearBank}
-            >
-              EMPTY BANK
-            </button>
-          </div>
-          {/* LIST SECTION */}
-          <div>
-            <AnimatePresence>
-              {geneBank.length > 0
-                ? geneBank.map((genome, i) => {
-                    return (
-                      <GenomeCard
-                        key={i}
-                        listId={genome.listId}
-                        name={genome.name}
-                        description={genome.description}
-                        onEdit={editGenome}
-                        onDelete={removeGenome}
+                  <h1 className="flex-none text-xl pb-2 font-bold">
+                    EXPORT SEQUENCE
+                  </h1>
+                  <p className="flex-none font-normal py-1">
+                    EXPORT YOUR SEQUENCE IN YOUR PREFERED FORMAT 🙂:
+                  </p>
+                  <div className="flex w-full">
+                    <div className="flex-grow">
+                      <SelectorMenu
+                        type={"normal"}
+                        dataset={exportData}
+                        value={exportData[exportSeqType].value}
+                        selectedOption={setExportSeqType}
                       />
-                    );
-                  })
-                : "NO GENOME'S HAVE BEEN SAVED"}
-            </AnimatePresence>
+                    </div>
+                    <button
+                      className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
+                      onClick={() => exportToFile(false)}
+                    >
+                      EXPORT
+                    </button>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </section>
+          )}
+        {/* BANK SECTION */}
+        <section>
+          <div className="mt-8 flex flex-col">
+            {/* HEADER */}
+            <div className="flex flex-row justify-between items-center">
+              <h1 className="text-xl pb-2 font-bold h-full">GENOME BANK</h1>
+              <button
+                className="m-2 p-2 bg-pink-600 rounded-lg font-semibold text-white"
+                onClick={clearBank}
+              >
+                EMPTY BANK
+              </button>
+            </div>
+            {/* LIST SECTION */}
+            <div>
+              <AnimatePresence>
+                {geneBank.length > 0
+                  ? geneBank.map((genome, i) => {
+                      return (
+                        <GenomeCard
+                          key={i}
+                          listId={genome.listId}
+                          name={genome.name}
+                          description={genome.description}
+                          onEdit={editGenome}
+                          onDelete={removeGenome}
+                        />
+                      );
+                    })
+                  : "NO GENOMES HAVE BEEN SAVED"}
+              </AnimatePresence>
+            </div>
           </div>
-        </div>
+          {/* EXPORT SECTION */}
+          {geneBank.length > 0 && (
+            <section>
+              <AnimatePresence>
+                <motion.div
+                  className="flex flex-col justify-start items-start mt-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    layout: {
+                      duration: 5,
+                    },
+                  }}
+                >
+                  <h1 className="flex-none text-xl pb-2 font-bold">
+                    EXPORT BANK
+                  </h1>
+                  <p className="flex-none font-normal py-1">
+                    EXPORT YOUR BANK IN YOUR PREFERED FORMAT:
+                  </p>
+                  <div className="flex w-full">
+                    <div className="flex-grow">
+                      <SelectorMenu
+                        type={"normal"}
+                        dataset={exportData}
+                        value={exportData[exportBankType].value}
+                        selectedOption={setExportBankType}
+                      />
+                    </div>
+                    <button
+                      className="m-2 p-2 bg-blue-500 rounded-lg font-semibold text-white"
+                      onClick={exportToFile}
+                    >
+                      EXPORT
+                    </button>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </section>
+          )}
+        </section>
       </div>
     </div>
   );

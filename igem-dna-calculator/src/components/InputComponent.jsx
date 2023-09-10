@@ -24,7 +24,10 @@ function InputComponent(props) {
 
   return (
     <div className="flex flex-col justify-between items-start">
-      <h1 className="flex-none pr-6 font-semibold">{props.label}</h1>
+      {props.label && (
+        <h1 className="flex-none pr-6 font-semibold">{props.label}</h1>
+      )}
+
       {!props.multiline ? (
         <input
           id={props.id}

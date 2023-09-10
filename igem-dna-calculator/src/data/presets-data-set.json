@@ -11,7 +11,7 @@
   {
     "id": 0,
     "value": "PROMOTER",
-    "preset": [1, 1],
+    "preset": [1, 1, 1],
     "color": {
       "input": "#000b1a",
       "inputText": "#ffffff",
@@ -22,7 +22,7 @@
   {
     "id": 1,
     "value": "RBS",
-    "preset": [2, 2],
+    "preset": [2, 2, 1],
     "color": {
       "input": "#172e16",
       "inputText": "#ffffff",
@@ -33,7 +33,7 @@
   {
     "id": 2,
     "value": "CDS",
-    "preset": [3, 3],
+    "preset": [3, 3, 1],
     "color": {
       "input": "#1e2e30",
       "inputText": "#ffffff",
@@ -44,7 +44,7 @@
   {
     "id": 3,
     "value": "TERMINATOR",
-    "preset": [4, 4],
+    "preset": [4, 4, 1],
     "color": {
       "input": "#362c0c",
       "inputText": "#ffffff",
