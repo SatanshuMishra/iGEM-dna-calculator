@@ -321,13 +321,13 @@ function GeneEditor() {
 	const copyToClipboard = () => {
 		navigator.clipboard.writeText(
 			`NNNNNN` +
-				recognitionSiteData.find(val => val.id === recognitionSite).prefix +
+				recognitionSiteData.find(val => val.id === recognitionSite - 1).prefix +
 				`NN` +
 				prefixData[prefix].value +
 				inputValue +
 				suffixData[suffix].value +
 				`NN` +
-				recognitionSiteData.find(val => val.id === recognitionSite).suffix +
+				recognitionSiteData.find(val => val.id === recognitionSite - 1).suffix +
 				"NNNNNN",
 		);
 		notify("copiedSuccess");
