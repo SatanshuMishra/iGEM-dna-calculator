@@ -1,18 +1,24 @@
 [
-  {
-    "id": 998,
-    "value": "SELECT A RECOGNITION SITE 🗺️"
-  },
-  {
-    "id": 0,
-    "value": "BbsI",
-    "prefix": "GTCTTC",
-    "suffix": "GAAGAC"
-  },
-  {
-    "id": 1,
-    "value": "SapI",
-    "prefix": "GAAGAGC",
-    "suffix": "GCTCTTC"
-  }
+	{
+		"id": 998,
+		"value": "SELECT A RECOGNITION SITE 🗺️"
+	},
+	{
+		"id": 0,
+		"value": "BbsI",
+		"prefix": "GTCTTC",
+		"suffix": "GAAGAC"
+	},
+	{
+		"id": 1,
+		"value": "SapI",
+		"prefix": "GAAGAGC",
+		"suffix": "GCTCTTC"
+	},
+	{
+		"id": 2,
+		"value": "BsaI",
+		"prefix": "GGTCTC",
+		"suffix": "GAGACC"
+	}
 ]

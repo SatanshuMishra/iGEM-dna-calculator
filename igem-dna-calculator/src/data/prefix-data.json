@@ -1,22 +1,22 @@
 [
-  {
-    "id": 998,
-    "value": "SELECT A PREFIX 🐈"
-  },
-  {
-    "id": 0,
-    "value": "GGAG"
-  },
-  {
-    "id": 1,
-    "value": "TACT"
-  },
-  {
-    "id": 2,
-    "value": "AATG"
-  },
-  {
-    "id": 3,
-    "value": "GCTT"
-  }
+	{
+		"id": 998,
+		"value": "SELECT A PREFIX 🐈"
+	},
+	{
+		"id": 0,
+		"value": "GGAG"
+	},
+	{
+		"id": 1,
+		"value": "TACT"
+	},
+	{
+		"id": 2,
+		"value": "AATG"
+	},
+	{
+		"id": 3,
+		"value": "GCTT"
+	}
 ]

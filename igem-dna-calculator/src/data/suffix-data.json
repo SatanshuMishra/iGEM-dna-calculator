@@ -1,22 +1,22 @@
 [
-  {
-    "id": 998,
-    "value": "SELECT AN SUFFIX 🐧"
-  },
-  {
-    "id": 0,
-    "value": "TACT"
-  },
-  {
-    "id": 1,
-    "value": "AATG"
-  },
-  {
-    "id": 2,
-    "value": "GCTT"
-  },
-  {
-    "id": 3,
-    "value": "GCGA"
-  }
+	{
+		"id": 998,
+		"value": "SELECT AN SUFFIX 🐧"
+	},
+	{
+		"id": 0,
+		"value": "TACT"
+	},
+	{
+		"id": 1,
+		"value": "AATG"
+	},
+	{
+		"id": 2,
+		"value": "GCTT"
+	},
+	{
+		"id": 3,
+		"value": "CGCT"
+	}
 ]
